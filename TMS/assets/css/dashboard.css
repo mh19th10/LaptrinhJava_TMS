@@ -1,0 +1,131 @@
+/* dashboard.css — layout for sidebar + main */
+@import url('global.css'); /* if your environment supports it; otherwise include global.css first in HTML */
+
+/* Layout specifics */
+.sidebar {
+  width:260px;
+  min-height:calc(100vh - 56px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
+  backdrop-filter: blur(8px);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:var(--shadow-2);
+  position:sticky;
+  top:28px;
+  align-self:flex-start;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+/* Brand */
+.sidebar 
+.brand{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding-bottom:8px;
+  border-bottom:1px solid rgba(15,23,42,0.04);
+}
+.brand .logo{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  background:var(--accent);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:white;
+  font-weight:700;
+  box-shadow:var(--shadow-1);
+}
+.brand h3{
+ font-size:1rem;
+ margin:0}
+
+/* Nav */
+.nav {
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.nav a{
+  text-decoration:none;
+  color: #07305a;
+  padding:10px;
+  border-radius:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  font-weight:600;
+}
+.nav a.active, .nav a:hover{
+  background:linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
+  color:var(--primary-600);
+}
+
+/* Main content */
+.main {
+  flex:1;
+  min-height:calc(100vh - 56px);
+}
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:20px;
+}
+.search{
+  flex:1;
+  max-width:420px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.search input{
+  flex:1;
+  border-radius:10px;
+  padding:10px 12px;
+  border:1px solid rgba(15,23,42,0.06);
+}
+
+/* Cards */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:18px;
+}
+.card.stat{
+  padding:18px;
+  border-radius:14px;
+  background:linear-gradient(180deg, #fff, rgba(255,255,255,0.9));
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  align-items:flex-start;
+}
+.card.stat .num{
+ font-weight:700;
+ font-size:1.3rem;
+ color:var(--primary-600)}
+.card.stat .label{
+ font-size:0.92rem;
+ color:var(--muted)}
+
+/* Responsive */
+@media (max-width: 1100px){
+.cards{
+  grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width: 700px){
+.sidebar{
+ width:100%;
+ position:relative;
+ top:0
+}
+.cards{
+ grid-template-columns:1fr}
+}

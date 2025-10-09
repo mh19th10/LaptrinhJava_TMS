@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng nhập - TMS</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/form.css" />
+</head>
+
+<body>
+  <div class="form-page">
+    <div class="form-card">
+      <h2>Đăng nhập hệ thống TMS</h2>
+
+      <form id="loginForm" style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-row">
+          <label>Email</label>
+          <input id="email" class="input" type="email" placeholder="Nhập email..." required />
+        </div>
+        <div class="form-row">
+          <label>Mật khẩu</label>
+          <input id="password" class="input" type="password" placeholder="Nhập mật khẩu..." required />
+        </div>
+        <button class="btn" type="submit">Đăng nhập</button>
+      </form>
+
+      <div class="form-footer">
+        Chưa có tài khoản?
+        <a class="link-primary" href="register.html">Đăng ký ngay</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟦 Gọi file JS ngoài -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/auth.js"></script>
+</body>
+</html>
