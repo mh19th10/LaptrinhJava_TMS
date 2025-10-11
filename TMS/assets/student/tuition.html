@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Học phí - Học sinh</title>
+  <link rel="stylesheet" href="../assets/css/global.css" />
+  <link rel="stylesheet" href="../assets/css/dashboard.css" />
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">T</div><div><h3>TMS</h3><div class="small-muted">Học sinh</div></div></div>
+      <nav class="nav">
+        <a href="dashboard.html">🏠 Trang chủ</a>
+        <a href="classes.html">📚 Lớp học</a>
+        <a href="tuition.html" class="active">💰 Học phí</a>
+        <a href="profile.html">👤 Hồ sơ</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div class="h1">Thông tin học phí</div>
+        <div class="small-muted">Quản lý và kiểm tra trạng thái thanh toán</div>
+      </div>
+
+      <div class="card">
+        <table class="table">
+          <thead><tr><th>Tên lớp</th><th>Tháng</th><th>Số tiền</th><th>Trạng thái</th></tr></thead>
+          <tbody>
+            <tr><td>Toán nâng cao 9</td><td>Tháng 9</td><td>800.000 VNĐ</td><td><span class="badge success">Đã thanh toán</span></td></tr>
+            <tr><td>Văn luyện thi</td><td>Tháng 9</td><td>750.000 VNĐ</td><td><span class="badge warn">Chưa thanh toán</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/student.js"></script>
+</body>
+</html>
