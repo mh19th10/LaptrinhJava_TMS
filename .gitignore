@@ -1,0 +1,9 @@
+
+OneDrive/
+.vscode/
+.idea/
+*.iml
+*.log
+build/
+.gradle/
+

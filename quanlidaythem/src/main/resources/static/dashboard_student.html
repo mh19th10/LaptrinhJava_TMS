@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TMS - Dashboard (Học sinh)</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+</head>
+<body>
+  <div class="app-container" id="app">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Học sinh</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard_student.html" class="active">🏠 Trang chủ</a>
+        <a href="classes_student.html">📚 Lớp học</a>
+        <a href="tuition_student.html">💰 Học phí</a>
+        <a href="profile_student.html">👤 Hồ sơ</a>
+        <a href="#" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1" id="studentName">Đang tải...</div>
+          <div class="small-muted">Chào mừng bạn đến với hệ thống TMS</div>
+        </div>
+      </div>
+
+      <div class="cards" id="studentStats"><!-- Dữ liệu thống kê sẽ được render ở đây --></div>
+
+      <div class="card">
+        <div class="h2">Lớp học sắp diễn ra</div>
+        <table class="table" style="margin-top:12px">
+          <thead>
+            <tr><th>Lớp</th><th>Giáo viên</th><th>Thời gian</th><th>Hành động</th></tr>
+          </thead>
+          <tbody id="upcomingClasses"><!-- Dữ liệu lớp học sẽ được render ở đây --></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // FIX 1: Sử dụng đúng tên 'jwtToken' đã lưu khi đăng nhập
+    const token = localStorage.getItem('jwtToken');
+
+    // Gatekeeper: Kiểm tra nếu người dùng chưa đăng nhập
+    if (!token) {
+      alert('Bạn cần đăng nhập để truy cập trang này!');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    // Lấy thông tin người dùng từ API được bảo vệ
+    // FIX 2: Sử dụng đường dẫn tương đối
+    fetch('/api/student/info', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+    .then(response => {
+      if (response.status === 401 || response.status === 403) {
+        // Nếu token không hợp lệ hoặc hết hạn, ném lỗi để nhảy vào .catch()
+        throw new Error('Token không hợp lệ hoặc đã hết hạn.');
+      }
+      if (!response.ok) {
+        throw new Error('Không thể tải dữ liệu người dùng.');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // FIX 3: Sử dụng đúng trường `fullName` từ backend
+      document.getElementById('studentName').textContent = 'Chào, ' + (data.fullName || 'Học sinh');
+      
+      // TODO: Gọi các hàm khác để tải dữ liệu thống kê và lớp học...
+      // fetchStudentStats(token);
+      // fetchUpcomingClasses(token);
+    })
+    .catch(error => {
+      console.error('Lỗi xác thực:', error.message);
+      alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      
+      // Dọn dẹp và chuyển hướng
+      localStorage.clear();
+      window.location.href = 'login.html';
+    });
+
+    // Xử lý sự kiện đăng xuất
+    document.getElementById('logoutBtn').addEventListener('click', (event) => {
+      event.preventDefault(); // Ngăn hành vi mặc định của thẻ <a>
+      
+      console.log('Đăng xuất...');
+      localStorage.clear(); // Xóa toàn bộ dữ liệu trong localStorage
+      window.location.href = 'login.html';
+    });
+  });
+  </script>
+</body>
+</html>
