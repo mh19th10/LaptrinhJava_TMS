@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Spring Boot-QuanlidaythemApplication<quanlidaythem>",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "mainClass": "vn.edu.uth.quanlidaythem.QuanlidaythemApplication",
+      "projectName": "quanlidaythem",
+      "args": "",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}

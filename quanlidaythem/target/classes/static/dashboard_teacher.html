@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Giáo viên</title>
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Giáo viên</div>
+        </div>
+      </div>
+
+     <nav class="nav">
+  <a href="dashboard_teacher.html">🏠 Trang chủ</a>
+  <a href="register-class_teacher.html">📚 Đăng ký lớp</a>
+  <a href="report_teacher.html">📄 Báo cáo</a>
+  <a href="profile_teacher.html">👤 Hồ sơ</a>
+  <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+</nav>
+
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1" id="teacherName">Chào mừng, Giáo viên 👋</div>
+          <div class="small-muted">Theo dõi và quản lý lớp giảng dạy tại đây</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('jwtToken'); // ✅ dùng đúng key
+    const role  = (localStorage.getItem('userRole') || '').toUpperCase();
+
+    // 1) Bắt buộc có token
+    if (!token) {
+      alert('Bạn cần đăng nhập để truy cập!');
+      location.href = 'login.html';
+      return;
+    }
+
+    // 2) Chặn nhầm trang theo role
+    if (role !== 'TEACHER') {
+      // Nếu là học sinh thì đưa về dashboard học sinh
+      location.href = (role === 'STUDENT') ? 'dashboard_student.html' : 'login.html';
+      return;
+    }
+
+    // 3) Gọi API giáo viên (dùng đường dẫn tương đối)
+    fetch('/api/teacher/info', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    })
+    .then(res => {
+      if (res.status === 401) throw new Error('UNAUTH');     // token hết hạn/sai
+      if (res.status === 403) throw new Error('FORBIDDEN');  // sai quyền
+      if (!res.ok) throw new Error('OTHER');
+      return res.json();
+    })
+    .then(data => {
+      // backend trả fullName → dùng fullName (fallback name nếu bạn tự đổi)
+      document.getElementById('teacherName').textContent =
+        'Chào, ' + (data.fullName || data.name || 'Giáo viên');
+    })
+    .catch(err => {
+      if (err.message === 'UNAUTH') {
+        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        localStorage.clear(); location.href = 'login.html';
+      } else if (err.message === 'FORBIDDEN') {
+        alert('Bạn không có quyền truy cập trang này.');
+        location.href = 'dashboard_student.html';
+      } else {
+        console.error(err);
+        alert('Không thể tải dữ liệu.');
+      }
+    });
+
+    // 4) Đăng xuất
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.clear();
+        location.href = 'login.html';
+      });
+    }
+  });
+  </script>
+</body>
+</html>
