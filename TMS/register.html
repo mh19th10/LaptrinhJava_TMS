@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng ký - TMS</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/form.css" />
+</head>
+
+<body>
+  <div class="form-page">
+    <div class="form-card">
+      <h2>Tạo tài khoản mới</h2>
+
+      <form id="registerForm" style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-row">
+          <label>Họ và tên</label>
+          <input id="fullname" class="input" type="text" placeholder="Nhập họ và tên..." required />
+        </div>
+        <div class="form-row">
+          <label>Email</label>
+          <input id="email" class="input" type="email" placeholder="Nhập email..." required />
+        </div>
+        <div class="form-row">
+          <label>Mật khẩu</label>
+          <input id="password" class="input" type="password" placeholder="Tạo mật khẩu..." required />
+        </div>
+        <div class="form-row">
+          <label>Vai trò</label>
+          <select id="role" class="input" required>
+            <option value="student">Học sinh</option>
+            <option value="teacher">Giáo viên</option>
+          </select>
+        </div>
+        <button class="btn" type="submit">Đăng ký</button>
+      </form>
+
+      <div class="form-footer">
+        Đã có tài khoản?
+        <a class="link-primary" href="login.html">Đăng nhập</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🟦 Gọi file JS ngoài -->
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/register.js"></script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Giáo viên</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Giáo viên</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard.html" class="active">🏠 Trang chủ</a>
+        <a href="register-class.html">📚 Đăng ký lớp</a>
+        <a href="report.html">📄 Báo cáo</a>
+        <a href="profile.html">👤 Hồ sơ</a>
+        <a href="../login.html">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1">Chào mừng, Trần Thị Giáo Viên 👋</div>
+          <div class="small-muted">Theo dõi và quản lý lớp giảng dạy tại đây</div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards">
+        <div class="card stat">
+          <div class="small-muted">📘 Lớp đang giảng dạy</div>
+          <div class="num">2</div>
+          <div class="small-muted">Hoạt động trong tuần này</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">👨‍🎓 Học sinh</div>
+          <div class="num">45</div>
+          <div class="small-muted">Đã đăng ký lớp học</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">🕓 Buổi học sắp tới</div>
+          <div class="num">Thứ 4 - 18h00</div>
+          <div class="small-muted">Toán nâng cao 9</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="h2">Danh sách lớp giảng dạy</div>
+        <table class="table" style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Tên lớp</th>
+              <th>Lịch học</th>
+              <th>Số học sinh</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Toán 9 - Nâng cao</td>
+              <td>Thứ 4 - 18h00</td>
+              <td>20</td>
+              <td><button class="btn small">Chi tiết</button></td>
+            </tr>
+            <tr>
+              <td>Vật lý 8</td>
+              <td>Thứ 6 - 19h00</td>
+              <td>25</td>
+              <td><button class="btn ghost small">Xem danh sách</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/teacher.js"></script>
+
+</body>
+</html>

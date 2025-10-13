@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đăng ký lớp dạy - Giáo viên</title>
+  <link rel="stylesheet" href="../assets/css/global.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">T</div><div><h3>TMS</h3><div class="small-muted">Giáo viên</div></div></div>
+      <nav class="nav">
+        <a href="dashboard.html">🏠 Trang chủ</a>
+        <a href="register-class.html" class="active">📚 Đăng ký lớp</a>
+        <a href="report.html">📄 Báo cáo</a>
+        <a href="profile.html">👤 Hồ sơ</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div class="h1">Đăng ký lớp giảng dạy</div>
+        <div class="small-muted">Nhập thông tin để mở lớp mới</div>
+      </div>
+
+      <div class="card">
+        <form style="display:grid;gap:12px;max-width:640px">
+          <div>
+            <label class="small-muted">Tên môn học</label>
+            <input class="input" placeholder="VD: Toán, Lý, Hóa" />
+          </div>
+          <div>
+            <label class="small-muted">Địa điểm giảng dạy</label>
+            <input class="input" placeholder="VD: Trung tâm A, Trường B..." />
+          </div>
+          <div>
+            <label class="small-muted">Lịch học</label>
+            <input class="input" placeholder="VD: Thứ 3, 19h00 - 21h00" />
+          </div>
+          <div>
+            <label class="small-muted">Học phí (VNĐ)</label>
+            <input class="input" type="number" placeholder="VD: 800000" />
+          </div>
+          <button class="btn">Gửi đăng ký</button>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/teacher.js"></script>
+
+</body>
+</html>
