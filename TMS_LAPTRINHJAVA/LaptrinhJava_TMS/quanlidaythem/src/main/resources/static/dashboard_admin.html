@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TMS – Bảng điều khiển Admin</title>
+  <link rel="stylesheet" href="assets/css/admin.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <h1>HỆ THỐNG QUẢN LÝ DẠY THÊM HỌC THÊM - TMS</h1>
+      <p class="subtitle">Tutor Management System - Quản lý chuyên nghiệp theo Thông tư 29</p>
+    </div>
+    <div class="user-info">
+      <span>Xin chào, <b id="user-display-name">Quản trị viên</b></span>
+      <div class="user-avatar" id="user-avatar">👤</div>
+    </div>
+  </header>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+      <li class="menu-item active" data-target="dashboard"><i>📊</i><span>Bảng Điều Khiển</span></li>
+      <li class="menu-item" data-target="teachers"><i>👨‍🏫</i><span>Quản lý Giáo Viên</span></li>
+      <li class="menu-item" data-target="students"><i>👨‍🎓</i><span>Quản lý Học Sinh</span></li>
+      <li class="menu-item" data-target="classes"><i>🏫</i><span>Quản lý Lớp Học</span></li>
+      <li class="menu-item" data-target="fees"><i>💰</i><span>Quản lý Học Phí</span></li>
+      <li class="menu-item" data-target="reports"><i>📈</i><span>Báo Cáo & Thống kê</span></li>
+      <li class="menu-item" data-target="settings"><i>⚙️</i><span>Cài Đặt Hệ Thống</span></li>
+    </ul>
+  </nav>
+
+  <!-- Main -->
+  <main class="main-content">
+    <section id="dashboard" class="content-section active">
+      <div class="page-title">
+        <h1>Bảng Điều Khiển</h1>
+        <div>Hôm nay: <span id="current-date"></span></div>
+      </div>
+
+      <div class="card-container">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Tổng số giáo viên</div><div class="card-icon bg-primary">👨‍🏫</div></div>
+          <div class="card-value" id="total-teachers">--</div>
+          <div class="card-footer">Đã phê duyệt: <span id="approved-teachers">--</span></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Tổng số học sinh</div><div class="card-icon bg-secondary">👨‍🎓</div></div>
+          <div class="card-value" id="total-students">--</div>
+          <div class="card-footer">Đang học: <span id="active-students">--</span></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Tổng số lớp học</div><div class="card-icon bg-accent">🏫</div></div>
+          <div class="card-value" id="total-classes">--</div>
+          <div class="card-footer">Đang hoạt động: <span id="active-classes">--</span></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Doanh thu tháng</div><div class="card-icon bg-warning">💰</div></div>
+          <div class="card-value" id="monthly-revenue">-- VNĐ</div>
+          <div class="card-footer">So với tháng trước: <span id="revenue-change">--%</span></div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <h2 class="table-title">Lớp Học Mới Cần Phê Duyệt</h2>
+        <table id="pending-classes-table">
+          <thead>
+            <tr>
+              <th>Tên lớp</th><th>Giáo viên</th><th>Môn học</th><th>Ngày tạo</th><th>Trạng thái</th><th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Các section khác (để trống trước) -->
+    <section id="teachers" class="content-section"><div class="page-title"><h1>Quản lý Giáo Viên</h1></div></section>
+    <section id="students" class="content-section"><div class="page-title"><h1>Quản lý Học Sinh</h1></div></section>
+    <section id="classes"  class="content-section"><div class="page-title"><h1>Quản lý Lớp Học</h1></div></section>
+    <section id="fees"     class="content-section"><div class="page-title"><h1>Quản lý Học Phí</h1></div></section>
+    <section id="reports"  class="content-section"><div class="page-title"><h1>Báo Cáo & Thống kê</h1></div></section>
+    <section id="settings" class="content-section"><div class="page-title"><h1>Cài Đặt Hệ Thống</h1></div></section>
+  </main>
+
+  <!-- JS -->
+  <script src="assets/js/admin-api.js"></script>
+  <script src="assets/js/admin-app.js"></script>
+</body>
+</html>

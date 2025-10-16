@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng ký - TMS</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/form.css" />
+</head>
+
+<body>
+  <div class="form-page">
+    <div class="form-card">
+      <h2>Tạo tài khoản mới</h2>
+
+      <form id="registerForm" style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-row">
+          <label>Họ và tên</label>
+          <input id="fullName" class="input" type="text" placeholder="Nhập họ và tên..." required />
+        </div>
+        <div class="form-row">
+          <label>Email (dùng làm tên đăng nhập)</label>
+          <input id="username" class="input" type="email" placeholder="Nhập email..." required />
+        </div>
+        <div class="form-row">
+          <label>Mật khẩu</label>
+          <input id="password" class="input" type="password" placeholder="Tạo mật khẩu..." required />
+        </div>
+        <div class="form-row">
+          <label>Vai trò</label>
+          <select id="role" class="input" required>
+            <option value="STUDENT">Học sinh</option>
+            <option value="TEACHER">Giáo viên</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+        <button class="btn" type="submit">Đăng ký</button>
+        <div id="message" style="margin-top: 10px; text-align: center;"></div>
+      </form>
+
+      <div class="form-footer">
+        Đã có tài khoản?
+        <a class="link-primary" href="login.html">Đăng nhập</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const registerForm = document.getElementById('registerForm');
+      const messageDiv = document.getElementById('message');
+
+      registerForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        messageDiv.textContent = 'Đang xử lý...';
+        messageDiv.style.color = 'black';
+
+        // Lấy dữ liệu từ form, tên các thuộc tính phải khớp với RegisterRequest DTO ở backend
+        const data = {
+          fullName: document.getElementById('fullName').value,
+          username: document.getElementById('username').value,
+          password: document.getElementById('password').value,
+          role: document.getElementById('role').value
+        };
+
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (response.ok) {
+            messageDiv.textContent = 'Đăng ký thành công! Bạn sẽ được chuyển đến trang đăng nhập.';
+            messageDiv.style.color = 'green';
+            // Chờ 2 giây rồi chuyển hướng
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 2000);
+          } else {
+            // Lấy thông báo lỗi từ backend
+            const errorText = await response.text();
+            throw new Error(errorText || 'Đăng ký thất bại.');
+          }
+        } catch (error) {
+          messageDiv.textContent = 'Lỗi: ' + error.message;
+          messageDiv.style.color = 'red';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

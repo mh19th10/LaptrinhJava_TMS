@@ -1,0 +1,54 @@
+/* form.css — modern login / register */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+.form-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background: linear-gradient(135deg, #e9f2ff, #ffffff);
+  padding:28px;
+}
+.form-card{
+  width:380px;
+  border-radius:16px;
+  padding:26px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.9));
+  box-shadow: 0 12px 40px rgba(15,23,42,0.08);
+  backdrop-filter: blur(6px);
+}
+.form-card h2{
+ margin-bottom:14px;
+ color:#03285b;
+}
+.form-row{
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+ margin-bottom:12px;
+}
+.form-row label{
+ font-size:0.9rem;
+ color:var(--muted);
+}
+.form-cta{
+ margin-top:8px;
+}
+.form-footer{
+ font-size:0.9rem; 
+ color:var(--muted);
+ text-align:center;
+ margin-top:12px;
+}
+.link-primary{
+ color:var(--primary); 
+ font-weight:600;
+ text-decoration:none;
+}
+
+/* small screens */
+@media (max-width:420px){
+.form-card{
+ width:100%;
+}
+}
