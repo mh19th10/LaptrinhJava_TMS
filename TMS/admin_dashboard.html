@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Quản trị viên</title>
+  <style>
+    /* Global Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-600: #0077FF;
+      --accent: #6A8CFF;
+      --muted: #64748b;
+      --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #c8d5ff 0%, #e0d4f7 100%);
+      min-height: 100vh;
+      padding: 28px;
+      color: #0f172a;
+    }
+
+    .app-container {
+      display: flex;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      min-height: calc(100vh - 56px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+      position: sticky;
+      top: 28px;
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(15,23,42,0.04);
+    }
+
+    .brand .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-1);
+      font-size: 1.5rem;
+    }
+
+    .brand h3 {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .small-muted {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .nav {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #07305a;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav a.active, .nav a:hover {
+      background: linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
+      color: var(--primary-600);
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      min-height: calc(100vh - 56px);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .header-row .small-muted {
+      color: rgba(255,255,255,0.85);
+    }
+
+    /* Cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+    }
+
+    .card.stat {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card.stat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    }
+
+    .card.stat .num {
+      font-weight: 700;
+      font-size: 2rem;
+      color: var(--primary-600);
+    }
+
+    .h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+
+    /* Table */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .table thead {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .table thead th {
+      padding: 12px;
+      text-align: left;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .table thead th:first-child {
+      border-radius: 8px 0 0 0;
+    }
+
+    .table thead th:last-child {
+      border-radius: 0 8px 0 0;
+    }
+
+    .table tbody tr {
+      border-bottom: 1px solid rgba(15,23,42,0.06);
+      transition: background 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+      background: rgba(102,126,234,0.05);
+    }
+
+    .table tbody td {
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.85rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0066dd;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-1);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Charts */
+    .chart-container {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .chart-box {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+    }
+
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(15,23,42,0.06);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-info {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .activity-time {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+      .cards {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .chart-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+      }
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Quản trị viên</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard_admin.html" class="active">🏠 Trang chủ</a>
+        <a href="manage_teachers.html">👨‍🏫 Quản lý giáo viên</a>
+        <a href="manage_classes.html">📚 Quản lý lớp học</a>
+        <a href="manage_fees.html">💰 Quản lý học phí</a>
+        <a href="reports_admin.html">📊 Báo cáo & Thống kê</a>
+        <a href="settings_admin.html">⚙️ Cài đặt</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1" id="adminName">Xin chào, Admin 👋</div>
+          <div class="small-muted">Bảng điều khiển quản trị hệ thống TMS</div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="cards">
+        <div class="card stat">
+          <div class="small-muted">👨‍🏫 Giáo viên chờ duyệt</div>
+          <div class="num" id="statPendingTeachers">5</div>
+          <div class="small-muted">Cần xem xét phê duyệt</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">📚 Lớp học hoạt động</div>
+          <div class="num" id="statActiveClasses">24</div>
+          <div class="small-muted">Đang diễn ra trong hệ thống</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">👨‍🎓 Tổng học sinh</div>
+          <div class="num" id="statTotalStudents">342</div>
+          <div class="small-muted">Đã đăng ký học</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">💰 Doanh thu tháng</div>
+          <div class="num" id="statRevenue">125M</div>
+          <div class="small-muted">VNĐ (ngoài trường)</div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="chart-container">
+        <div class="chart-box">
+          <div class="h2">📈 Thống kê đăng ký theo tháng</div>
+          <canvas id="registrationChart" style="max-height: 250px;"></canvas>
+        </div>
+        <div class="chart-box">
+          <div class="h2">🔔 Hoạt động gần đây</div>
+          <div id="recentActivities">
+            <div class="activity-item">
+              <div class="activity-info">
+                <div class="activity-title">Giáo viên mới đăng ký</div>
+                <div class="activity-time">Nguyễn Văn A - 5 phút trước</div>
+              </div>
+              <span class="badge badge-pending">Chờ duyệt</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-info">
+                <div class="activity-title">Lớp học được tạo</div>
+                <div class="activity-time">Toán cao cấp 101 - 15 phút trước</div>
+              </div>
+              <span class="badge badge-approved">Đã duyệt</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-info">
+                <div class="activity-title">Thanh toán học phí</div>
+                <div class="activity-time">Trần Thị B - 1 giờ trước</div>
+              </div>
+              <span class="badge badge-approved">Hoàn tất</span>
+            </div>
+            <div class="activity-item">
+              <div class="activity-info">
+                <div class="activity-title">Học sinh đăng ký lớp</div>
+                <div class="activity-time">Lê Văn C - 2 giờ trước</div>
+              </div>
+              <span class="badge badge-approved">Thành công</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pending Approvals Table -->
+      <div class="card">
+        <div class="h2">⏳ Hồ sơ chờ phê duyệt</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Giáo viên</th>
+              <th>Môn dạy</th>
+              <th>Ngày nộp</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="pendingTableBody">
+            <tr>
+              <td>Nguyễn Văn A</td>
+              <td>Toán học</td>
+              <td>20/10/2025</td>
+              <td><span class="badge badge-pending">Chờ duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-success" onclick="approveTeacher(1)">✓ Duyệt</button>
+                  <button class="btn btn-danger" onclick="rejectTeacher(1)">✗ Từ chối</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Trần Thị B</td>
+              <td>Vật lý</td>
+              <td>21/10/2025</td>
+              <td><span class="badge badge-pending">Chờ duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-success" onclick="approveTeacher(2)">✓ Duyệt</button>
+                  <button class="btn btn-danger" onclick="rejectTeacher(2)">✗ Từ chối</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Lê Văn C</td>
+              <td>Hóa học</td>
+              <td>22/10/2025</td>
+              <td><span class="badge badge-pending">Chờ duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-success" onclick="approveTeacher(3)">✓ Duyệt</button>
+                  <button class="btn btn-danger" onclick="rejectTeacher(3)">✗ Từ chối</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script>
+    // Load admin info
+    function loadAdminInfo() {
+      const adminData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+      if (adminData.name) {
+        document.getElementById('adminName').textContent = `Xin chào, ${adminData.name} 👋`;
+      }
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Load statistics from API (mock data for now)
+    async function loadStatistics() {
+      try {
+        // In real app, call API: const response = await fetch('/api/admin/statistics');
+        // const data = await response.json();
+        
+        // Mock data
+        const stats = {
+          pendingTeachers: 5,
+          activeClasses: 24,
+          totalStudents: 342,
+          monthlyRevenue: 125000000
+        };
+
+        document.getElementById('statPendingTeachers').textContent = stats.pendingTeachers;
+        document.getElementById('statActiveClasses').textContent = stats.activeClasses;
+        document.getElementById('statTotalStudents').textContent = stats.totalStudents;
+        document.getElementById('statRevenue').textContent = 
+          Math.round(stats.monthlyRevenue / 1000000) + 'M';
+      } catch (error) {
+        console.error('Error loading statistics:', error);
+      }
+    }
+
+    // Initialize Chart
+    function initChart() {
+      const ctx = document.getElementById('registrationChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10'],
+          datasets: [{
+            label: 'Học sinh đăng ký',
+            data: [12, 19, 15, 25, 22, 30, 28, 35, 32, 40],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // Approve teacher
+    async function approveTeacher(teacherId) {
+      if (confirm('Bạn có chắc muốn phê duyệt giáo viên này?')) {
+        try {
+          // In real app: await fetch(`/api/admin/teachers/${teacherId}/approve`, { method: 'POST' });
+          alert('Đã phê duyệt giáo viên thành công!');
+          loadStatistics();
+          loadPendingTeachers();
+        } catch (error) {
+          console.error('Error approving teacher:', error);
+          alert('Có lỗi xảy ra. Vui lòng thử lại!');
+        }
+      }
+    }
+
+    // Reject teacher
+    async function rejectTeacher(teacherId) {
+      const reason = prompt('Nhập lý do từ chối:');
+      if (reason) {
+        try {
+          // In real app: await fetch(`/api/admin/teachers/${teacherId}/reject`, { 
+          //   method: 'POST',
+          //   body: JSON.stringify({ reason })
+          // });
+          alert('Đã từ chối hồ sơ giáo viên!');
+          loadStatistics();
+          loadPendingTeachers();
+        } catch (error) {
+          console.error('Error rejecting teacher:', error);
+          alert('Có lỗi xảy ra. Vui lòng thử lại!');
+        }
+      }
+    }
+
+    // Load pending teachers
+    async function loadPendingTeachers() {
+      // In real app, fetch from API
+      // For now, table is already populated with mock data
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAdminInfo();
+      loadStatistics();
+      initChart();
+      loadPendingTeachers();
+    });
+  </script>
+</body>
+</html>
