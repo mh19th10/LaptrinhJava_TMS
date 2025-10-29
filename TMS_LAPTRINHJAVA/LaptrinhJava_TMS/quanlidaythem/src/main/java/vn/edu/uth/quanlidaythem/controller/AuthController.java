@@ -26,7 +26,7 @@ public class AuthController {
     // FIX: Đồng bộ các case để sử dụng tên vai trò chuẩn tiếng Anh
    private String getRedirectUrlByRole(String role) {
     return switch (role) {
-        case "ADMIN"   -> "/index.html";              // tạm về home nếu chưa có trang admin
+        case "ADMIN"   -> "/admin_dashboard.html";              // tạm về home nếu chưa có trang admin
         case "TEACHER" -> "/dashboard_teacher.html";  // đúng tên file
         case "STUDENT" -> "/dashboard_student.html";  // đúng tên file
         default -> "/index.html";

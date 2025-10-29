@@ -1,0 +1,807 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Quản lý Lớp học</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-600: #0077FF;
+      --accent: #6A8CFF;
+      --muted: #64748b;
+      --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #c8d5ff 0%, #e0d4f7 100%);
+      min-height: 100vh;
+      padding: 28px;
+      color: #0f172a;
+    }
+
+    .app-container {
+      display: flex;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      width: 260px;
+      min-height: calc(100vh - 56px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+      position: sticky;
+      top: 28px;
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(15,23,42,0.04);
+    }
+
+    .brand .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-1);
+      font-size: 1.5rem;
+    }
+
+    .brand h3 {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .small-muted {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .nav {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #07305a;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav a.active, .nav a:hover {
+      background: linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
+      color: var(--primary-600);
+    }
+
+    .main {
+      flex: 1;
+      min-height: calc(100vh - 56px);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .header-row .small-muted {
+      color: rgba(255,255,255,0.85);
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      padding: 10px 36px 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.9);
+      width: 280px;
+      font-size: 0.9rem;
+    }
+
+    .search-box::after {
+      content: '🔍';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .filter-select {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.9);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+      margin-bottom: 20px;
+    }
+
+    .h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow-1);
+      text-align: center;
+    }
+
+    .stat-card .num {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-600);
+      margin: 8px 0;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .table thead {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .table thead th {
+      padding: 12px;
+      text-align: left;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .table thead th:first-child {
+      border-radius: 8px 0 0 0;
+    }
+
+    .table thead th:last-child {
+      border-radius: 0 8px 0 0;
+    }
+
+    .table tbody tr {
+      border-bottom: 1px solid rgba(15,23,42,0.06);
+      transition: background 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+      background: rgba(102,126,234,0.05);
+    }
+
+    .table tbody td {
+      padding: 12px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.85rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0066dd;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-1);
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-info {
+      background: #06b6d4;
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #0891b2;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-active {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .badge-completed {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .badge-cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 700px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid rgba(15,23,42,0.06);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--muted);
+    }
+
+    .modal-close:hover {
+      color: #ef4444;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .info-value {
+      font-size: 0.95rem;
+      color: #0f172a;
+    }
+
+    .student-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid rgba(15,23,42,0.1);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .student-item {
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(15,23,42,0.06);
+    }
+
+    .student-item:last-child {
+      border-bottom: none;
+    }
+
+    @media (max-width: 1100px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+      }
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+      .filter-bar {
+        flex-direction: column;
+        width: 100%;
+      }
+      .search-box input {
+        width: 100%;
+      }
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Quản trị viên</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard_admin.html">🏠 Trang chủ</a>
+        <a href="manage_teachers.html">👨‍🏫 Quản lý giáo viên</a>
+        <a href="manage_classes.html" class="active">📚 Quản lý lớp học</a>
+        <a href="manage_fees.html">💰 Quản lý học phí</a>
+        <a href="reports_admin.html">📊 Báo cáo & Thống kê</a>
+        <a href="settings_admin.html">⚙️ Cài đặt</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1">📚 Quản lý Lớp học</div>
+          <div class="small-muted">Giám sát và phê duyệt các lớp dạy thêm</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="small-muted">⏳ Chờ duyệt</div>
+          <div class="num" id="statPending">8</div>
+        </div>
+        <div class="stat-card">
+          <div class="small-muted">✅ Đã duyệt</div>
+          <div class="num" id="statApproved">24</div>
+        </div>
+        <div class="stat-card">
+          <div class="small-muted">🎓 Đang học</div>
+          <div class="num" id="statActive">18</div>
+        </div>
+        <div class="stat-card">
+          <div class="small-muted">✓ Hoàn thành</div>
+          <div class="num" id="statCompleted">45</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="card">
+        <div class="filter-bar">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm lớp học...">
+          </div>
+          <select class="filter-select" id="statusFilter">
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">Chờ duyệt</option>
+            <option value="approved">Đã duyệt</option>
+            <option value="active">Đang học</option>
+            <option value="completed">Hoàn thành</option>
+          </select>
+          <select class="filter-select" id="typeFilter">
+            <option value="">Tất cả loại hình</option>
+            <option value="in-school">Trong trường</option>
+            <option value="out-school">Ngoài trường</option>
+          </select>
+          <select class="filter-select" id="subjectFilter">
+            <option value="">Tất cả môn học</option>
+            <option value="math">Toán học</option>
+            <option value="physics">Vật lý</option>
+            <option value="chemistry">Hóa học</option>
+            <option value="english">Tiếng Anh</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Classes Table -->
+      <div class="card">
+        <div class="h2">Danh sách lớp học</div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Tên lớp</th>
+              <th>Giáo viên</th>
+              <th>Môn học</th>
+              <th>Loại hình</th>
+              <th>Số HS</th>
+              <th>Lịch học</th>
+              <th>Trạng thái</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="classesTableBody">
+            <tr>
+              <td>Toán 12 - Luyện thi THPT</td>
+              <td>Nguyễn Văn A</td>
+              <td>Toán học</td>
+              <td>Ngoài trường</td>
+              <td>25/30</td>
+              <td>T2, T4, T6 - 18:00</td>
+              <td><span class="badge badge-pending">Chờ duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(1)">👁️</button>
+                  <button class="btn btn-success" onclick="approveClass(1)">✓</button>
+                  <button class="btn btn-danger" onclick="rejectClass(1)">✗</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Vật lý 11 - Bồi dưỡng</td>
+              <td>Trần Thị B</td>
+              <td>Vật lý</td>
+              <td>Trong trường</td>
+              <td>15/20</td>
+              <td>T3, T5 - 15:30</td>
+              <td><span class="badge badge-active">Đang học</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(2)">👁️</button>
+                  <button class="btn btn-warning" onclick="editClass(2)">✏️</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Hóa 10 - Học sinh giỏi</td>
+              <td>Lê Văn C</td>
+              <td>Hóa học</td>
+              <td>Trong trường</td>
+              <td>12/15</td>
+              <td>T2, T4 - 16:00</td>
+              <td><span class="badge badge-approved">Đã duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(3)">👁️</button>
+                  <button class="btn btn-warning" onclick="editClass(3)">✏️</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Tiếng Anh IELTS 6.0</td>
+              <td>Phạm Thị D</td>
+              <td>Tiếng Anh</td>
+              <td>Ngoài trường</td>
+              <td>18/20</td>
+              <td>T7, CN - 09:00</td>
+              <td><span class="badge badge-active">Đang học</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(4)">👁️</button>
+                  <button class="btn btn-warning" onclick="editClass(4)">✏️</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Ngữ văn 12 - Thi THPT</td>
+              <td>Hoàng Văn E</td>
+              <td>Ngữ văn</td>
+              <td>Ngoài trường</td>
+              <td>22/25</td>
+              <td>T3, T5, T7 - 17:30</td>
+              <td><span class="badge badge-pending">Chờ duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(5)">👁️</button>
+                  <button class="btn btn-success" onclick="approveClass(5)">✓</button>
+                  <button class="btn btn-danger" onclick="rejectClass(5)">✗</button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>Toán 11 - Học lại</td>
+              <td>Nguyễn Thị F</td>
+              <td>Toán học</td>
+              <td>Trong trường</td>
+              <td>8/15</td>
+              <td>T2, T4 - 15:00</td>
+              <td><span class="badge badge-approved">Đã duyệt</span></td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn btn-info" onclick="viewClassDetail(6)">👁️</button>
+                  <button class="btn btn-warning" onclick="editClass(6)">✏️</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="classModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Chi tiết Lớp học</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-label">Tên lớp</div>
+          <div class="info-value" id="modalClassName">Toán 12 - Luyện thi THPT</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Giáo viên</div>
+          <div class="info-value" id="modalTeacher">Nguyễn Văn A</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Môn học</div>
+          <div class="info-value" id="modalSubject">Toán học</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Loại hình</div>
+          <div class="info-value" id="modalType">Ngoài trường</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Số học sinh</div>
+          <div class="info-value" id="modalStudents">25/30</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Học phí</div>
+          <div class="info-value" id="modalFee">1.500.000 VNĐ/tháng</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Lịch học</div>
+          <div class="info-value" id="modalSchedule">T2, T4, T6 - 18:00-20:00</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Địa điểm</div>
+          <div class="info-value" id="modalLocation">Phòng 301, Tầng 3</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Ngày khai giảng</div>
+          <div class="info-value" id="modalStartDate">01/11/2025</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Ngày kết thúc</div>
+          <div class="info-value" id="modalEndDate">30/05/2026</div>
+        </div>
+      </div>
+      <div class="info-item">
+        <div class="info-label">Mô tả</div>
+        <div class="info-value" id="modalDescription">Lớp ôn thi THPT Quốc gia môn Toán, tập trung vào các dạng bài thi thường gặp.</div>
+      </div>
+      <div class="info-item" style="margin-top: 16px;">
+        <div class="info-label">Danh sách học sinh (25)</div>
+        <div class="student-list" id="modalStudentList">
+          <div class="student-item">1. Nguyễn Văn X - Lớp 12A1</div>
+          <div class="student-item">2. Trần Thị Y - Lớp 12A1</div>
+          <div class="student-item">3. Lê Văn Z - Lớp 12A2</div>
+          <div class="student-item">4. Phạm Thị K - Lớp 12A2</div>
+          <div class="student-item">5. Hoàng Văn L - Lớp 12A3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // View class detail
+    function viewClassDetail(classId) {
+      // In real app: fetch class data from API
+      document.getElementById('classModal').classList.add('show');
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('classModal').classList.remove('show');
+    }
+
+    // Approve class
+    async function approveClass(classId) {
+      if (confirm('Bạn có chắc muốn phê duyệt lớp học này?')) {
+        try {
+          // API: await fetch(`/api/admin/classes/${classId}/approve`, { method: 'POST' });
+          alert('Đã phê duyệt lớp học thành công!');
+          location.reload();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Có lỗi xảy ra!');
+        }
+      }
+    }
+
+    // Reject class
+    async function rejectClass(classId) {
+      const reason = prompt('Nhập lý do từ chối:');
+      if (reason) {
+        try {
+          // API call
+          alert('Đã từ chối lớp học!');
+          location.reload();
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Có lỗi xảy ra!');
+        }
+      }
+    }
+
+    // Edit class
+    function editClass(classId) {
+      alert('Chức năng chỉnh sửa lớp học (sẽ mở form chỉnh sửa)');
+    }
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      // Filter table rows
+    });
+
+    // Filter by status
+    document.getElementById('statusFilter').addEventListener('change', (e) => {
+      // Filter table by status
+    });
+
+    // Filter by type
+    document.getElementById('typeFilter').addEventListener('change', (e) => {
+      // Filter table by type
+    });
+
+    // Filter by subject
+    document.getElementById('subjectFilter').addEventListener('change', (e) => {
+      // Filter table by subject
+    });
+
+    // Load statistics
+    async function loadStats() {
+      // API call to get stats
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStats();
+    });
+  </script>
+</body>
+</html>
