@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Cài đặt</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-600: #0077FF;
+      --accent: #6A8CFF;
+      --muted: #64748b;
+      --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #c8d5ff 0%, #e0d4f7 100%);
+      min-height: 100vh;
+      padding: 28px;
+      color: #0f172a;
+    }
+
+    .app-container {
+      display: flex;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .sidebar {
+      width: 260px;
+      min-height: calc(100vh - 56px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow-2);
+      position: sticky;
+      top: 28px;
+      align-self: flex-start;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(15,23,42,0.04);
+    }
+
+    .brand .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-1);
+      font-size: 1.5rem;
+    }
+
+    .brand h3 {
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .small-muted {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .nav {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .nav a {
+      text-decoration: none;
+      color: #07305a;
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav a.active, .nav a:hover {
+      background: linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
+      color: var(--primary-600);
+    }
+
+    .main {
+      flex: 1;
+      min-height: calc(100vh - 56px);
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+    }
+
+    .header-row .small-muted {
+      color: rgba(255,255,255,0.85);
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: var(--shadow-2);
+      margin-bottom: 20px;
+    }
+
+    .h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(15,23,42,0.1);
+      font-size: 0.9rem;
+      transition: border 0.3s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary-600);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .switch-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: rgba(102,126,234,0.03);
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .switch-label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .switch-title {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .switch-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 26px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary-600);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      background: var(--primary-600);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0066dd;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-1);
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .alert {
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .alert-info {
+      background: #dbeafe;
+      color: #1e40af;
+      border-left: 4px solid #3b82f6;
+    }
+
+    .alert-warning {
+      background: #fef3c7;
+      color: #92400e;
+      border-left: 4px solid #f59e0b;
+    }
+
+    @media (max-width: 900px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Quản trị viên</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="admin_dashboard.html">🏠 Trang chủ</a>
+        <a href="manage_teachers.html">👨‍🏫 Quản lý giáo viên</a>
+        <a href="manage_classes.html">📚 Quản lý lớp học</a>
+        <a href="manage_fees.html">💰 Quản lý học phí</a>
+        <a href="reports_admin.html">📊 Báo cáo & Thống kê</a>
+        <a href="settings_admin.html" class="active">⚙️ Cài đặt</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1">⚙️ Cài đặt Hệ thống</div>
+          <div class="small-muted">Quản lý cấu hình và thông số hệ thống TMS</div>
+        </div>
+      </div>
+
+      <!-- System Info -->
+      <div class="card">
+        <div class="h2">ℹ️ Thông tin Hệ thống</div>
+        <div class="alert alert-info">
+          <span>💡</span>
+          <div>
+            <strong>Phiên bản hệ thống:</strong> TMS v1.0.0 | <strong>Cập nhật:</strong> 25/10/2025
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Tên Sở GD&ĐT</label>
+            <input type="text" class="form-input" id="deptName" value="Sở Giáo dục và Đào tạo TP.HCM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mã Sở</label>
+            <input type="text" class="form-input" id="deptCode" value="SGDHCM">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email liên hệ</label>
+            <input type="email" class="form-input" id="contactEmail" value="contact@sgdhcm.edu.vn">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số điện thoại</label>
+            <input type="tel" class="form-input" id="contactPhone" value="028-3822-5026">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Địa chỉ</label>
+            <input type="text" class="form-input" id="address" value="01 Hoàng Diệu, Quận 4, TP.HCM">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveSystemInfo()">💾 Lưu thông tin</button>
+        </div>
+      </div>
+
+      <!-- System Settings -->
+      <div class="card">
+        <div class="h2">🔧 Cấu hình Hệ thống</div>
+        
+        <div class="switch-group">
+          <div class="switch-label">
+            <div class="switch-title">Tự động phê duyệt giáo viên</div>
+            <div class="switch-desc">Tự động phê duyệt giáo viên có đủ hồ sơ hợp lệ</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoApproveTeacher">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-group">
+          <div class="switch-label">
+            <div class="switch-title">Tự động phê duyệt lớp học</div>
+            <div class="switch-desc">Tự động phê duyệt lớp học tuân thủ Thông tư 29</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoApproveClass">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-group">
+          <div class="switch-label">
+            <div class="switch-title">Thông báo email</div>
+            <div class="switch-desc">Gửi thông báo qua email cho người dùng</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="emailNotification" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-group">
+          <div class="switch-label">
+            <div class="switch-title">Nhắc nhở thanh toán tự động</div>
+            <div class="switch-desc">Tự động gửi nhắc nhở học phí đến hạn</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="autoPaymentReminder" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="switch-group">
+          <div class="switch-label">
+            <div class="switch-title">Chế độ bảo trì</div>
+            <div class="switch-desc">Tạm khóa hệ thống để bảo trì (chỉ Admin truy cập)</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="maintenanceMode">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Lưu cấu hình</button>
+        </div>
+      </div>
+
+      <!-- Fee Configuration -->
+      <div class="card">
+        <div class="h2">💰 Cấu hình Học phí</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Học phí tối thiểu (VNĐ)</label>
+            <input type="number" class="form-input" id="minFee" value="500000" min="0" step="100000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Học phí tối đa (VNĐ)</label>
+            <input type="number" class="form-input" id="maxFee" value="5000000" min="0" step="100000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hạn đóng học phí (ngày/tháng)</label>
+            <input type="number" class="form-input" id="paymentDeadline" value="10" min="1" max="31">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số ngày nhắc trước hạn</label>
+            <input type="number" class="form-input" id="reminderDays" value="3" min="1" max="15">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveFeeConfig()">💾 Lưu cấu hình học phí</button>
+        </div>
+      </div>
+
+      <!-- Class Configuration -->
+      <div class="card">
+        <div class="h2">📚 Cấu hình Lớp học</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Số học sinh tối thiểu/lớp</label>
+            <input type="number" class="form-input" id="minStudents" value="5" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số học sinh tối đa/lớp</label>
+            <input type="number" class="form-input" id="maxStudents" value="30" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số buổi học tối thiểu/tuần</label>
+            <input type="number" class="form-input" id="minSessions" value="2" min="1">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Số buổi học tối đa/tuần</label>
+            <input type="number" class="form-input" id="maxSessions" value="5" min="1">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="saveClassConfig()">💾 Lưu cấu hình lớp học</button>
+        </div>
+      </div>
+
+      <!-- Backup & Security -->
+      <div class="card">
+        <div class="h2">🔒 Sao lưu & Bảo mật</div>
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Lưu ý:</strong> Các thao tác dưới đây ảnh hưởng đến toàn bộ dữ liệu hệ thống. Vui lòng thực hiện cẩn thận!
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tự động sao lưu dữ liệu</label>
+          <select class="form-select" id="backupFrequency">
+            <option value="daily">Hàng ngày</option>
+            <option value="weekly" selected>Hàng tuần</option>
+            <option value="monthly">Hàng tháng</option>
+          </select>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="createBackup()">💾 Tạo bản sao lưu ngay</button>
+          <button class="btn btn-primary" onclick="restoreBackup()">📥 Khôi phục dữ liệu</button>
+          <button class="btn btn-danger" onclick="clearCache()">🗑️ Xóa bộ nhớ đệm</button>
+        </div>
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="card" style="border: 2px solid #ef4444;">
+        <div class="h2" style="color: #ef4444;">⚠️ Vùng Nguy hiểm</div>
+        <div class="alert alert-warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Cảnh báo:</strong> Các hành động dưới đây không thể hoàn tác. Vui lòng cân nhắc kỹ!
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-danger" onclick="resetSystem()">🔄 Đặt lại hệ thống</button>
+          <button class="btn btn-danger" onclick="deleteAllData()">🗑️ Xóa toàn bộ dữ liệu</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Save system info
+    function saveSystemInfo() {
+      const data = {
+        deptName: document.getElementById('deptName').value,
+        deptCode: document.getElementById('deptCode').value,
+        contactEmail: document.getElementById('contactEmail').value,
+        contactPhone: document.getElementById('contactPhone').value,
+        address: document.getElementById('address').value
+      };
+      
+      // API: await fetch('/api/admin/settings/system', { method: 'PUT', body: JSON.stringify(data) });
+      alert('✅ Đã lưu thông tin hệ thống thành công!');
+    }
+
+    // Save settings
+    function saveSettings() {
+      const settings = {
+        autoApproveTeacher: document.getElementById('autoApproveTeacher').checked,
+        autoApproveClass: document.getElementById('autoApproveClass').checked,
+        emailNotification: document.getElementById('emailNotification').checked,
+        autoPaymentReminder: document.getElementById('autoPaymentReminder').checked,
+        maintenanceMode: document.getElementById('maintenanceMode').checked
+      };
+      
+      // API: await fetch('/api/admin/settings/config', { method: 'PUT', body: JSON.stringify(settings) });
+      alert('✅ Đã lưu cấu hình hệ thống thành công!');
+    }
+
+    // Save fee config
+    function saveFeeConfig() {
+      const feeConfig = {
+        minFee: document.getElementById('minFee').value,
+        maxFee: document.getElementById('maxFee').value,
+        paymentDeadline: document.getElementById('paymentDeadline').value,
+        reminderDays: document.getElementById('reminderDays').value
+      };
+      
+      // API call
+      alert('✅ Đã lưu cấu hình học phí thành công!');
+    }
+
+    // Save class config
+    function saveClassConfig() {
+      const classConfig = {
+        minStudents: document.getElementById('minStudents').value,
+        maxStudents: document.getElementById('maxStudents').value,
+        minSessions: document.getElementById('minSessions').value,
+        maxSessions: document.getElementById('maxSessions').value
+      };
+      
+      // API call
+      alert('✅ Đã lưu cấu hình lớp học thành công!');
+    }
+
+    // Create backup
+    function createBackup() {
+      if (confirm('Bạn có chắc muốn tạo bản sao lưu dữ liệu?')) {
+        // API: await fetch('/api/admin/backup/create', { method: 'POST' });
+        alert('⏳ Đang tạo bản sao lưu... Quá trình có thể mất vài phút.');
+      }
+    }
+
+    // Restore backup
+    function restoreBackup() {
+      if (confirm('Bạn có chắc muốn khôi phục dữ liệu? Dữ liệu hiện tại sẽ bị ghi đè!')) {
+        // API: await fetch('/api/admin/backup/restore', { method: 'POST' });
+        alert('⏳ Đang khôi phục dữ liệu...');
+      }
+    }
+
+    // Clear cache
+    function clearCache() {
+      if (confirm('Xóa bộ nhớ đệm sẽ làm hệ thống chạy chậm hơn trong lần đầu sử dụng. Tiếp tục?')) {
+        // API: await fetch('/api/admin/cache/clear', { method: 'POST' });
+        alert('✅ Đã xóa bộ nhớ đệm thành công!');
+      }
+    }
+
+    // Reset system
+    function resetSystem() {
+      const confirmation = prompt('⚠️ NGUY HIỂM: Đặt lại hệ thống sẽ xóa tất cả cấu hình. Nhập "RESET" để xác nhận:');
+      if (confirmation === 'RESET') {
+        // API: await fetch('/api/admin/system/reset', { method: 'POST' });
+        alert('🔄 Đang đặt lại hệ thống...');
+      }
+    }
+
+    // Delete all data
+    function deleteAllData() {
+      const confirmation = prompt('⚠️ NGUY HIỂM: Thao tác này sẽ XÓA VĨNH VIỄN toàn bộ dữ liệu. Nhập "DELETE ALL" để xác nhận:');
+      if (confirmation === 'DELETE ALL') {
+        // API: await fetch('/api/admin/data/delete-all', { method: 'DELETE' });
+        alert('🗑️ Đang xóa toàn bộ dữ liệu...');
+      }
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (confirm('Bạn có chắc muốn đăng xuất?')) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    });
+
+    // Load current settings
+    async function loadSettings() {
+      // API: const response = await fetch('/api/admin/settings');
+      // const settings = await response.json();
+      // Populate form fields with current settings
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+    });
+  </script>
+</body>
+</html>

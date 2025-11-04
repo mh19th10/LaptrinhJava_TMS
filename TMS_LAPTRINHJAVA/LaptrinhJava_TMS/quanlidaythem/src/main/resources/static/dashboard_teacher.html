@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TMS - Giáo viên</title>
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Giáo viên</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="dashboard_teacher.html" class="active">🏠 Trang chủ</a>
+        <a href="register-class_teacher.html">📚 Đăng ký lớp</a>
+        <a href="report_teacher.html">📄 Báo cáo</a>
+        <a href="profile_teacher.html">👤 Hồ sơ</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1" id="teacherName">Chào mừng, Giáo viên 👋</div>
+          <div class="small-muted">Theo dõi và quản lý lớp giảng dạy tại đây</div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="cards" id="statCards">
+        <div class="card stat">
+          <div class="small-muted">📘 Lớp đang giảng dạy</div>
+          <div class="num" id="statActiveClasses">--</div>
+          <div class="small-muted">Hoạt động trong tuần này</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">👨‍🎓 Học sinh</div>
+          <div class="num" id="statStudents">--</div>
+          <div class="small-muted">Đã đăng ký lớp học</div>
+        </div>
+        <div class="card stat">
+          <div class="small-muted">🕓 Buổi học sắp tới</div>
+          <div class="num" id="statNextSession">--</div>
+          <div class="small-muted" id="statNextClassName">--</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <div class="h2">Danh sách lớp giảng dạy</div>
+        <table class="table" style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Tên lớp</th>
+              <th>Lịch học</th>
+              <th>Số học sinh</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="classesTbody">
+            <tr>
+              <td colspan="4" class="small-muted">Đang tải danh sách lớp...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/api.js"></script>
+  <script src="assets/js/teacher.js"></script>
+</body>
+</html>

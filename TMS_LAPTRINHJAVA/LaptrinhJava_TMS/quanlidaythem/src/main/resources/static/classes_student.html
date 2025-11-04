@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lớp học - Học sinh</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Học sinh</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="dashboard_student.html">🏠 Trang chủ</a>
+        <a href="classes_student.html" class="active">📚 Lớp học</a>
+        <a href="tuition_student.html">💰 Học phí</a>
+        <a href="profile_student.html">👤 Hồ sơ</a>
+        <a href="#" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1">Đăng ký lớp học</div>
+          <div class="small-muted">Chọn lớp phù hợp với lịch học của bạn
+            <!-- thêm span để không lỗi khi set tên -->
+            <span id="studentName" style="margin-left:6px;"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <table class="table">
+          <thead>
+            <tr><th>Tên lớp</th><th>Giáo viên</th><th>Lịch học</th><th>Học phí</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Toán nâng cao 9</td><td>Nguyễn Thị A</td><td>Thứ 3 - 19h00</td><td>800.000 VNĐ</td><td><button class="btn">Đăng ký</button></td></tr>
+            <tr><td>Văn luyện thi</td><td>Trần Văn B</td><td>Thứ 5 - 18h00</td><td>750.000 VNĐ</td><td><button class="btn ghost">Chi tiết</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('jwtToken');
+    const role  = (localStorage.getItem('userRole') || '').toUpperCase();
+
+    // 1) Bắt buộc có token
+    if (!token) { alert('Bạn cần đăng nhập để truy cập trang này!'); location.href = 'login.html'; return; }
+
+    // 2) Chặn vào nhầm trang theo role
+    if (role !== 'STUDENT') {
+      location.href = (role === 'TEACHER') ? 'dashboard_teacher.html' : 'login.html';
+      return;
+    }
+
+    // 3) Gọi API (để xác thực & có thể hiển thị tên)
+    fetch('/api/student/info', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(res => {
+        if (res.status === 401) throw new Error('UNAUTH');
+        if (res.status === 403) throw new Error('FORBIDDEN');
+        if (!res.ok)        throw new Error('OTHER');
+        return res.json();
+      })
+      .then(data => {
+        const nameEl = document.getElementById('studentName');
+        if (nameEl) nameEl.textContent = '– Chào, ' + (data.fullName || 'Học sinh');
+      })
+      .catch(err => {
+        if (err.message === 'UNAUTH') {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          localStorage.clear(); location.href = 'login.html';
+        } else if (err.message === 'FORBIDDEN') {
+          alert('Bạn không có quyền truy cập trang này.');
+          location.href = 'dashboard_teacher.html';
+        } else {
+          console.error(err); alert('Không thể tải dữ liệu người dùng.');
+        }
+      });
+
+    // 4) Đăng xuất (có thể null-check)
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        localStorage.clear();
+        location.href = 'login.html';
+      });
+    }
+  });
+  </script>
+</body>
+</html>

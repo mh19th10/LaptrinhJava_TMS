@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hồ sơ - Học sinh</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="brand"><div class="logo">T</div><div><h3>TMS</h3><div class="small-muted">Học sinh</div></div></div>
+      <nav class="nav">
+        <a href="dashboard_student.html">🏠 Trang chủ</a>
+        <a href="classes_student.html">📚 Lớp học</a>
+        <a href="tuition_student.html">💰 Học phí</a>
+        <a href="profile_student.html" class="active">👤 Hồ sơ</a>
+        <a href="#" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <div class="header-row">
+        <div>
+          <div class="h1">Thông tin cá nhân</div>
+          <div class="small-muted">Bạn có thể cập nhật thông tin hồ sơ tại đây</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- Form HỒ SƠ (form duy nhất trên trang) -->
+        <form id="profileForm" class="row" style="flex-direction:column;gap:12px">
+          <div style="width:100%">
+            <label class="small-muted">Họ và tên</label>
+            <input id="fullName" class="input" type="text" placeholder="Đang tải..." />
+          </div>
+          <div style="width:100%">
+            <label class="small-muted">Username (Không thể đổi)</label>
+            <input id="username" class="input" type="text" readonly disabled />
+          </div>
+          <div style="width:100%">
+            <label class="small-muted">Lớp hiện tại</label>
+            <input id="currentClass" class="input" type="text" placeholder="Đang tải..." />
+          </div>
+
+          <div style="margin-top:6px">
+            <button type="submit" class="btn">Cập nhật</button>
+          </div>
+
+          <div id="statusMessage" style="margin-top:10px;"></div>
+        </form>
+      </div>
+
+      <!-- Khối ĐỔI MẬT KHẨU (KHÔNG phải form để tránh lồng form) -->
+      <div class="card" style="margin-top:16px">
+        <div class="h2">Đổi mật khẩu</div>
+        <div id="changePwdBox" style="display:grid;gap:12px;max-width:520px">
+          <input class="input" type="password" id="oldPassword" placeholder="Mật khẩu hiện tại" required />
+          <input class="input" type="password" id="newPassword" placeholder="Mật khẩu mới" required />
+          <input class="input" type="password" id="confirmPassword" placeholder="Nhập lại mật khẩu mới" required />
+          <button id="btnChangePwd" type="button" class="btn">Cập nhật mật khẩu</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const token = localStorage.getItem('jwtToken');
+    const role  = (localStorage.getItem('userRole') || '').toUpperCase();
+
+    // Guard: token + đúng role
+    if (!token) { alert('Bạn cần đăng nhập!'); location.href='login.html'; return; }
+    if (role !== 'STUDENT') { location.href = (role==='TEACHER'?'profile_teacher.html':'login.html'); return; }
+
+    const profileForm = document.getElementById('profileForm');
+    const fullNameInput = document.getElementById('fullName');
+    const usernameInput = document.getElementById('username');
+    const currentClassInput = document.getElementById('currentClass');
+    const statusMessage = document.getElementById('statusMessage');
+
+    async function loadUserProfile() {
+      try {
+        const res = await fetch('/api/student/profile', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.status === 401) throw new Error('UNAUTH');
+        if (res.status === 403) throw new Error('FORBIDDEN');
+        if (!res.ok) throw new Error('OTHER');
+        const data = await res.json();
+
+        fullNameInput.value = data.fullName || '';
+        usernameInput.value = data.username || '';
+        currentClassInput.value = data.currentClass || 'Chưa có lớp';
+      } catch (e) {
+        if (e.message === 'UNAUTH') {
+          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+        } else if (e.message === 'FORBIDDEN') {
+          alert('Bạn không có quyền truy cập trang này.');
+        } else {
+          alert('Không thể tải hồ sơ.');
+        }
+        localStorage.clear(); location.href = 'login.html';
+      }
+    }
+
+    profileForm.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      statusMessage.textContent = 'Đang cập nhật...'; statusMessage.style.color = 'black';
+
+      const body = {
+        fullName: fullNameInput.value,
+        currentClass: currentClassInput.value
+      };
+
+      try {
+        const res = await fetch('/api/student/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify(body)
+        });
+        if (res.status === 401) throw new Error('UNAUTH');
+        if (res.status === 403) throw new Error('FORBIDDEN');
+        if (!res.ok) throw new Error(await res.text() || 'OTHER');
+        statusMessage.textContent = 'Cập nhật hồ sơ thành công!'; statusMessage.style.color = 'green';
+      } catch (e) {
+        statusMessage.textContent = (e.message==='UNAUTH'?'Phiên hết hạn':
+                                     e.message==='FORBIDDEN'?'Sai quyền':('Lỗi: '+e.message));
+        statusMessage.style.color = 'red';
+        if (e.message==='UNAUTH' || e.message==='FORBIDDEN') { localStorage.clear(); location.href='login.html'; }
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', (e) => {
+      e.preventDefault(); localStorage.clear(); location.href='login.html';
+    });
+
+    // 👉 Handler ĐỔI MẬT KHẨU (không submit form)
+    const btnChangePwd = document.getElementById('btnChangePwd');
+    btnChangePwd.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const oldPassword = (document.getElementById('oldPassword')?.value || '').trim();
+      const newPassword = (document.getElementById('newPassword')?.value || '').trim();
+      const confirmPassword = (document.getElementById('confirmPassword')?.value || '').trim();
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        alert('Vui lòng nhập đủ 3 ô mật khẩu.'); return;
+      }
+      if (newPassword !== confirmPassword) {
+        alert('Xác nhận mật khẩu không khớp.'); return;
+      }
+      try {
+        const res = await fetch('/api/account/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({ oldPassword, newPassword, confirmPassword })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.success === false) {
+          alert(data.message || 'Đổi mật khẩu thất bại.'); return;
+        }
+        alert(data.message || 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
+        localStorage.clear(); location.href = 'login.html';
+      } catch (err) {
+        console.error(err); alert('Có lỗi mạng khi đổi mật khẩu.');
+      }
+    });
+
+    // Load hồ sơ lần đầu
+    loadUserProfile();
+  });
+  </script>
+</body>
+</html>

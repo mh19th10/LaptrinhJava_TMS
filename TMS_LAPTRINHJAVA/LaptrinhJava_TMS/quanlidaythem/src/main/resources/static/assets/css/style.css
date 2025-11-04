@@ -1,0 +1,18 @@
+/* style.css — landing / hero (light mode) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+.hero {
+  display:flex;
+  gap:36px;
+  align-items:center;
+  padding:64px;
+  background: linear-gradient(90deg, #ffffff, #f7fbff);
+  border-radius:16px;
+  box-shadow:var(--shadow-1);
+}
+.hero .text h1{font-size:2rem;color: #03285b;margin-bottom:12px}
+.hero .text p{color:var(--muted);max-width:620px;line-height:1.6}
+.hero .actions{margin-top:18px;display:flex;gap:12px}
+.hero .img{flex:1;text-align:center}
+.hero .img img{max-width:420px;border-radius:12px;box-shadow:var(--shadow-2)}
+@media (max-width:900px){.hero{flex-direction:column;padding:28px}.hero .img img{width:90%}}
