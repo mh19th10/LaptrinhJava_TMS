@@ -5,418 +5,67 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>TMS - Quản lý Giáo viên</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --primary-600:#0077FF; --accent:#6A8CFF; --muted:#64748b; --shadow-1:0 2px 8px rgba(0,0,0,0.08); --shadow-2:0 4px 12px rgba(0,0,0,0.1); }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#c8d5ff 0%,#e0d4f7 100%); min-height: 100vh; padding: 28px; color:#0f172a; }
+    .app-container { display:flex; gap:20px; max-width:1400px; margin:0 auto; }
+    .sidebar { width:260px; min-height:calc(100vh - 56px); background:linear-gradient(180deg,rgba(255,255,255,0.55),rgba(255,255,255,0.45)); backdrop-filter:blur(8px); border-radius:16px; padding:20px; box-shadow:var(--shadow-2); position:sticky; top:28px; align-self:flex-start; display:flex; flex-direction:column; gap:12px; }
+    .brand { display:flex; gap:10px; align-items:center; padding-bottom:8px; border-bottom:1px solid rgba(15,23,42,0.04); }
+    .brand .logo { width:44px; height:44px; border-radius:10px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; box-shadow:var(--shadow-1); font-size:1.5rem; }
+    .brand h3 { font-size:1rem; margin:0; }
+    .small-muted { font-size:0.85rem; color:var(--muted); }
+    .nav { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+    .nav a { text-decoration:none; color:#07305a; padding:10px; border-radius:10px; display:flex; gap:10px; align-items:center; font-weight:600; transition:all .3s; }
+    .nav a.active, .nav a:hover { background:linear-gradient(90deg,rgba(0,119,255,0.12),rgba(106,140,255,0.06)); color:var(--primary-600); }
+    .main { flex:1; min-height:calc(100vh - 56px); }
+    .header-row { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:20px; }
+    .h1 { font-size:1.8rem; font-weight:700; color:#fff; margin-bottom:4px; }
+    .header-row .small-muted { color:rgba(255,255,255,0.85); }
+    .search-filter { display:flex; gap:12px; align-items:center; }
+    .search-box { position:relative; }
+    .search-box input { padding:10px 36px 10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.9); width:280px; font-size:0.9rem; }
+    .search-box::after { content:'🔍'; position:absolute; right:12px; top:50%; transform:translateY(-50%); }
+    .filter-select { padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.9); font-size:0.9rem; cursor:pointer; }
+    .card { background:#fff; border-radius:14px; padding:20px; box-shadow:var(--shadow-2); margin-bottom:20px; }
+    .h2 { font-size:1.3rem; font-weight:700; margin-bottom:12px; color:#0f172a; }
+    .tabs { display:flex; gap:8px; margin-bottom:16px; border-bottom:2px solid rgba(15,23,42,0.06); padding-bottom:8px; }
+    .tab { padding:8px 16px; border-radius:8px 8px 0 0; background:transparent; border:none; font-weight:600; cursor:pointer; transition:all .3s; color:var(--muted); }
+    .tab.active { background:var(--primary-600); color:#fff; }
+    .table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .table thead { background:linear-gradient(90deg,#667eea,#764ba2); }
+    .table thead th { padding:12px; text-align:left; color:#fff; font-weight:600; font-size:0.9rem; }
+    .table thead th:first-child { border-radius:8px 0 0 0; }
+    .table thead th:last-child { border-radius:0 8px 0 0; }
+    .table tbody tr { border-bottom:1px solid rgba(15,23,42,0.06); transition:background .2s; }
+    .table tbody tr:hover { background:rgba(102,126,234,0.05); }
+    .table tbody td { padding:12px; font-size:0.9rem; }
+    .btn { padding:8px 16px; border:none; border-radius:8px; font-weight:600; cursor:pointer; transition:all .2s; font-size:0.85rem; }
+    .btn-primary { background:var(--primary-600); color:#fff; }
+    .btn-primary:hover { background:#0066dd; transform:translateY(-2px); box-shadow:var(--shadow-1); }
+    .btn-success { background:#10b981; color:#fff; }
+    .btn-success:hover { background:#059669; }
+    .btn-danger { background:#ef4444; color:#fff; }
+    .btn-danger:hover { background:#dc2626; }
+    .btn-info { background:#06b6d4; color:#fff; }
+    .btn-info:hover { background:#0891b2; }
+    .btn-group { display:flex; gap:6px; }
+    .badge { display:inline-block; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:600; }
+    .badge-pending { background:#fef3c7; color:#92400e; }
+    .badge-approved { background:#d1fae5; color:#065f46; }
+    .badge-rejected { background:#fee2e2; color:#991b1b; }
+    .badge-active { background:#dbeafe; color:#1e40af; }
 
-    :root {
-      --primary-600: #0077FF;
-      --accent: #6A8CFF;
-      --muted: #64748b;
-      --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
-      --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #c8d5ff 0%, #e0d4f7 100%);
-      min-height: 100vh;
-      padding: 28px;
-      color: #0f172a;
-    }
-
-    .app-container {
-      display: flex;
-      gap: 20px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .sidebar {
-      width: 260px;
-      min-height: calc(100vh - 56px);
-      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
-      backdrop-filter: blur(8px);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: var(--shadow-2);
-      position: sticky;
-      top: 28px;
-      align-self: flex-start;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .brand {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(15,23,42,0.04);
-    }
-
-    .brand .logo {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 700;
-      box-shadow: var(--shadow-1);
-      font-size: 1.5rem;
-    }
-
-    .brand h3 {
-      font-size: 1rem;
-      margin: 0;
-    }
-
-    .small-muted {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .nav {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .nav a {
-      text-decoration: none;
-      color: #07305a;
-      padding: 10px;
-      border-radius: 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .nav a.active, .nav a:hover {
-      background: linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
-      color: var(--primary-600);
-    }
-
-    .main {
-      flex: 1;
-      min-height: calc(100vh - 56px);
-    }
-
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 4px;
-    }
-
-    .header-row .small-muted {
-      color: rgba(255,255,255,0.85);
-    }
-
-    .search-filter {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .search-box {
-      position: relative;
-    }
-
-    .search-box input {
-      padding: 10px 36px 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.9);
-      width: 280px;
-      font-size: 0.9rem;
-    }
-
-    .search-box::after {
-      content: '🔍';
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .filter-select {
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.9);
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: var(--shadow-2);
-      margin-bottom: 20px;
-    }
-
-    .h2 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: #0f172a;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      border-bottom: 2px solid rgba(15,23,42,0.06);
-      padding-bottom: 8px;
-    }
-
-    .tab {
-      padding: 8px 16px;
-      border-radius: 8px 8px 0 0;
-      background: transparent;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      color: var(--muted);
-    }
-
-    .tab.active {
-      background: var(--primary-600);
-      color: white;
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 12px;
-    }
-
-    .table thead {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-    }
-
-    .table thead th {
-      padding: 12px;
-      text-align: left;
-      color: white;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .table thead th:first-child {
-      border-radius: 8px 0 0 0;
-    }
-
-    .table thead th:last-child {
-      border-radius: 0 8px 0 0;
-    }
-
-    .table tbody tr {
-      border-bottom: 1px solid rgba(15,23,42,0.06);
-      transition: background 0.2s ease;
-    }
-
-    .table tbody tr:hover {
-      background: rgba(102,126,234,0.05);
-    }
-
-    .table tbody td {
-      padding: 12px;
-      font-size: 0.9rem;
-    }
-
-    .btn {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-size: 0.85rem;
-    }
-
-    .btn-primary {
-      background: var(--primary-600);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #0066dd;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-1);
-    }
-
-    .btn-success {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #059669;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #dc2626;
-    }
-
-    .btn-info {
-      background: #06b6d4;
-      color: white;
-    }
-
-    .btn-info:hover {
-      background: #0891b2;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 6px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-
-    .badge-pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .badge-approved {
-      background: #d1fae5;
-      color: #065f46;
-    }
-
-    .badge-rejected {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .badge-active {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid rgba(15,23,42,0.06);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--muted);
-    }
-
-    .modal-close:hover {
-      color: #ef4444;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .info-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .info-value {
-      font-size: 0.95rem;
-      color: #0f172a;
-    }
-
-    @media (max-width: 700px) {
-      .sidebar {
-        width: 100%;
-        position: relative;
-        top: 0;
-      }
-      .search-filter {
-        flex-direction: column;
-        width: 100%;
-      }
-      .search-box input {
-        width: 100%;
-      }
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; }
+    .modal.show { display:flex; }
+    .modal-content { background:#fff; border-radius:16px; padding:24px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid rgba(15,23,42,0.06); }
+    .modal-close { background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--muted); }
+    .modal-close:hover { color:#ef4444; }
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+    .info-item { display:flex; flex-direction:column; gap:4px; }
+    .info-label { font-size:0.85rem; color:var(--muted); font-weight:600; }
+    .info-value { font-size:0.95rem; color:#0f172a; }
+    @media (max-width:700px){ .sidebar{width:100%; position:relative; top:0;} .search-filter{flex-direction:column; width:100%;} .search-box input{width:100%;} .info-grid{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
@@ -464,9 +113,9 @@
 
       <div class="card">
         <div class="tabs">
-          <button class="tab active" onclick="switchTab('pending')">⏳ Chờ duyệt (<span id="pendingCount">5</span>)</button>
-          <button class="tab" onclick="switchTab('approved')">✓ Đã duyệt (<span id="approvedCount">18</span>)</button>
-          <button class="tab" onclick="switchTab('rejected')">✗ Từ chối (<span id="rejectedCount">3</span>)</button>
+          <button class="tab active" onclick="switchTab('pending')">⏳ Chờ duyệt (<span id="pendingCount">–</span>)</button>
+          <button class="tab" onclick="switchTab('approved')">✓ Đã duyệt (<span id="approvedCount">–</span>)</button>
+          <button class="tab" onclick="switchTab('rejected')">✗ Từ chối (<span id="rejectedCount">–</span>)</button>
         </div>
 
         <div id="pendingTab" class="tab-content">
@@ -482,76 +131,7 @@
               </tr>
             </thead>
             <tbody id="pendingTableBody">
-              <tr>
-                <td>Nguyễn Văn A</td>
-                <td>nguyenvana@email.com</td>
-                <td>Toán học</td>
-                <td>20/10/2025</td>
-                <td><span class="badge badge-pending">Chờ duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(1)">👁️ Xem</button>
-                    <button class="btn btn-success" onclick="approveTeacher(1)">✓ Duyệt</button>
-                    <button class="btn btn-danger" onclick="rejectTeacher(1)">✗ Từ chối</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Trần Thị B</td>
-                <td>tranthib@email.com</td>
-                <td>Vật lý</td>
-                <td>21/10/2025</td>
-                <td><span class="badge badge-pending">Chờ duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(2)">👁️ Xem</button>
-                    <button class="btn btn-success" onclick="approveTeacher(2)">✓ Duyệt</button>
-                    <button class="btn btn-danger" onclick="rejectTeacher(2)">✗ Từ chối</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Lê Văn C</td>
-                <td>levanc@email.com</td>
-                <td>Hóa học</td>
-                <td>22/10/2025</td>
-                <td><span class="badge badge-pending">Chờ duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(3)">👁️ Xem</button>
-                    <button class="btn btn-success" onclick="approveTeacher(3)">✓ Duyệt</button>
-                    <button class="btn btn-danger" onclick="rejectTeacher(3)">✗ Từ chối</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Phạm Thị D</td>
-                <td>phamthid@email.com</td>
-                <td>Tiếng Anh</td>
-                <td>23/10/2025</td>
-                <td><span class="badge badge-pending">Chờ duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(4)">👁️ Xem</button>
-                    <button class="btn btn-success" onclick="approveTeacher(4)">✓ Duyệt</button>
-                    <button class="btn btn-danger" onclick="rejectTeacher(4)">✗ Từ chối</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Hoàng Văn E</td>
-                <td>hoangvane@email.com</td>
-                <td>Ngữ văn</td>
-                <td>24/10/2025</td>
-                <td><span class="badge badge-pending">Chờ duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(5)">👁️ Xem</button>
-                    <button class="btn btn-success" onclick="approveTeacher(5)">✓ Duyệt</button>
-                    <button class="btn btn-danger" onclick="rejectTeacher(5)">✗ Từ chối</button>
-                  </div>
-                </td>
-              </tr>
+              <tr><td colspan="6" style="text-align:center;">⏳ Đang tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -569,32 +149,7 @@
               </tr>
             </thead>
             <tbody id="approvedTableBody">
-              <tr>
-                <td>Nguyễn Thị F</td>
-                <td>nguyenthif@email.com</td>
-                <td>Toán học</td>
-                <td>3 lớp</td>
-                <td><span class="badge badge-approved">Đã duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(6)">👁️ Xem</button>
-                    <button class="btn btn-danger" onclick="suspendTeacher(6)">🚫 Tạm ngừng</button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td>Trần Văn G</td>
-                <td>tranvang@email.com</td>
-                <td>Vật lý</td>
-                <td>2 lớp</td>
-                <td><span class="badge badge-approved">Đã duyệt</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(7)">👁️ Xem</button>
-                    <button class="btn btn-danger" onclick="suspendTeacher(7)">🚫 Tạm ngừng</button>
-                  </div>
-                </td>
-              </tr>
+              <tr><td colspan="6" style="text-align:center;">⏳ Đang tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -612,18 +167,7 @@
               </tr>
             </thead>
             <tbody id="rejectedTableBody">
-              <tr>
-                <td>Lê Thị H</td>
-                <td>lethih@email.com</td>
-                <td>Hóa học</td>
-                <td>Thiếu bằng cấp</td>
-                <td><span class="badge badge-rejected">Từ chối</span></td>
-                <td>
-                  <div class="btn-group">
-                    <button class="btn btn-info" onclick="viewTeacherDetail(8)">👁️ Xem</button>
-                  </div>
-                </td>
-              </tr>
+              <tr><td colspan="6" style="text-align:center;">⏳ Đang tải...</td></tr>
             </tbody>
           </table>
         </div>
@@ -639,128 +183,209 @@
         <button class="modal-close" onclick="closeModal()">×</button>
       </div>
       <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">Họ tên</div>
-          <div class="info-value" id="modalName">Nguyễn Văn A</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Email</div>
-          <div class="info-value" id="modalEmail">nguyenvana@email.com</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Số điện thoại</div>
-          <div class="info-value" id="modalPhone">0901234567</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Ngày sinh</div>
-          <div class="info-value" id="modalDob">15/05/1985</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Môn dạy</div>
-          <div class="info-value" id="modalSubject">Toán học</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Trình độ</div>
-          <div class="info-value" id="modalDegree">Thạc sĩ</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Kinh nghiệm</div>
-          <div class="info-value" id="modalExperience">10 năm</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Địa chỉ</div>
-          <div class="info-value" id="modalAddress">123 Đường ABC, Quận 1, TP.HCM</div>
-        </div>
+        <div class="info-item"><div class="info-label">Họ tên</div><div class="info-value" id="modalName">-</div></div>
+        <div class="info-item"><div class="info-label">Email</div><div class="info-value" id="modalEmail">-</div></div>
+        <div class="info-item"><div class="info-label">Số điện thoại</div><div class="info-value" id="modalPhone">-</div></div>
+        <div class="info-item"><div class="info-label">Ngày sinh</div><div class="info-value" id="modalDob">-</div></div>
+        <div class="info-item"><div class="info-label">Môn chính</div><div class="info-value" id="modalSubject">-</div></div>
+        <div class="info-item"><div class="info-label">Trình độ</div><div class="info-value" id="modalDegree">-</div></div>
+        <div class="info-item"><div class="info-label">Kinh nghiệm</div><div class="info-value" id="modalExperience">-</div></div>
+        <div class="info-item"><div class="info-label">Địa chỉ</div><div class="info-value" id="modalAddress">-</div></div>
       </div>
       <div class="info-item">
         <div class="info-label">Giới thiệu</div>
-        <div class="info-value" id="modalBio">Giáo viên có 10 năm kinh nghiệm giảng dạy Toán học cấp THPT. Chuyên bồi dưỡng học sinh giỏi.</div>
+        <div class="info-value" id="modalBio">-</div>
       </div>
     </div>
   </div>
 
+  <!-- Scripts -->
+  <script src="assets/js/api.js"></script>
   <script>
-    // Switch tabs
-    function switchTab(tabName) {
-      const tabs = document.querySelectorAll('.tab');
-      const contents = document.querySelectorAll('.tab-content');
-      
-      tabs.forEach(tab => tab.classList.remove('active'));
-      contents.forEach(content => content.style.display = 'none');
-      
-      event.target.classList.add('active');
-      document.getElementById(tabName + 'Tab').style.display = 'block';
+    document.addEventListener('DOMContentLoaded', initPage);
+
+    async function initPage() {
+      if (!requireLoginOrRedirect()) return;
+      if (!requireRoleOrRedirect('ADMIN')) return;
+      wireLogout('logoutBtn');
+
+      await refreshAllCounts();
+      await loadTeachers('PENDING');
+
+      // search realtime
+      document.getElementById('searchInput').addEventListener('input', debounce(applySearch, 250));
     }
 
-    // View teacher detail
-    function viewTeacherDetail(teacherId) {
-      // In real app: fetch teacher data from API
-      document.getElementById('teacherModal').classList.add('show');
+    function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+
+    // ===== Load & render =====
+    async function refreshAllCounts() {
+      try {
+        const [pending, approved, rejected] = await Promise.all([
+          listTeachersApi({ status: 'PENDING' }),
+          listTeachersApi({ status: 'APPROVED' }),
+          listTeachersApi({ status: 'REJECTED' }),
+        ]);
+        document.getElementById('pendingCount').textContent = pending.length ?? 0;
+        document.getElementById('approvedCount').textContent = approved.length ?? 0;
+        document.getElementById('rejectedCount').textContent = rejected.length ?? 0;
+      } catch {}
     }
 
-    // Close modal
+    async function loadTeachers(status = 'PENDING') {
+      const mapTbody = {
+        PENDING: document.getElementById('pendingTableBody'),
+        APPROVED: document.getElementById('approvedTableBody'),
+        REJECTED: document.getElementById('rejectedTableBody'),
+      };
+      const tbody = mapTbody[status];
+      if (!tbody) return;
+
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">⏳ Đang tải...</td></tr>`;
+      try {
+        const q = (document.getElementById('searchInput').value || '').trim();
+        const data = await listTeachersApi({ status, q });
+        renderTeacherTable(data, tbody, status);
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:red;">Lỗi tải danh sách!</td></tr>`;
+      }
+    }
+
+    function renderTeacherTable(list, tbody, status) {
+      tbody.innerHTML = '';
+      if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Không có dữ liệu</td></tr>`;
+        return;
+      }
+      for (const t of list) {
+        const subjects = (t.subjects || [])
+          .map(s => `${s.code} - ${s.name} (${s.grade}) ${s.active ? '✅' : '❌'}`)
+          .join('<br>') || 'Chưa có';
+
+        const createdDateCell = t.createdDate ? new Date(t.createdDate).toLocaleDateString('vi-VN') : '-';
+
+        let actions = `
+          <div class="btn-group">
+            <button class="btn btn-info" onclick="viewTeacherDetail(${t.id})">👁️ Xem</button>
+        `;
+        if (t.status === 'PENDING') {
+          actions += `
+            <button class="btn btn-success" onclick="approveTeacher(${t.id})">✓ Duyệt</button>
+            <button class="btn btn-danger" onclick="rejectTeacher(${t.id})">✗ Từ chối</button>
+          `;
+        }
+        if (t.status === 'APPROVED') {
+          actions += `<button class="btn btn-danger" onclick="suspendTeacher(${t.id})">🚫 Tạm ngừng</button>`;
+        }
+        actions += `</div>`;
+
+        const row = `
+          <tr>
+            <td>${t.name || '-'}</td>
+            <td>${t.email || '-'}</td>
+            <td>${subjects}</td>
+            <td>${createdDateCell}</td>
+            <td><span class="badge ${badgeByStatus(t.status)}">${labelByStatus(t.status)}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+      }
+    }
+
+    function badgeByStatus(s) {
+      if (s === 'APPROVED') return 'badge-approved';
+      if (s === 'REJECTED') return 'badge-rejected';
+      return 'badge-pending';
+    }
+    function labelByStatus(s) {
+      if (s === 'APPROVED') return 'Đã duyệt';
+      if (s === 'REJECTED') return 'Từ chối';
+      return 'Chờ duyệt';
+    }
+
+    async function applySearch() {
+      const activeTab = document.querySelector('.tab.active');
+      if (!activeTab) return;
+      if (activeTab.textContent.includes('Chờ duyệt')) return loadTeachers('PENDING');
+      if (activeTab.textContent.includes('Đã duyệt')) return loadTeachers('APPROVED');
+      if (activeTab.textContent.includes('Từ chối')) return loadTeachers('REJECTED');
+    }
+
+    // ===== Modal =====
+    async function viewTeacherDetail(id) {
+      try {
+        const t = await getTeacherApi(id);
+        document.getElementById('modalName').textContent = t.name || '-';
+        document.getElementById('modalEmail').textContent = t.email || '-';
+        document.getElementById('modalPhone').textContent = t.phone || '-';
+        document.getElementById('modalDob').textContent = t.dob ? new Date(t.dob).toLocaleDateString('vi-VN') : '-';
+        document.getElementById('modalSubject').textContent = t.mainSubject || '-';
+        document.getElementById('modalDegree').textContent = t.degree || '-';
+        document.getElementById('modalExperience').textContent = t.experience || '-';
+        document.getElementById('modalAddress').textContent = t.address || '-';
+        document.getElementById('modalBio').textContent = t.bio || '-';
+        document.getElementById('teacherModal').classList.add('show');
+      } catch (err) {
+        alert('Không thể tải thông tin giáo viên!');
+      }
+    }
     function closeModal() {
       document.getElementById('teacherModal').classList.remove('show');
     }
 
-    // Approve teacher
-    async function approveTeacher(teacherId) {
-      if (confirm('Bạn có chắc muốn phê duyệt giáo viên này?')) {
-        try {
-          // API call: await fetch(`/api/admin/teachers/${teacherId}/approve`, { method: 'POST' });
-          alert('Đã phê duyệt giáo viên thành công!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
+    // ===== Actions =====
+    async function approveTeacher(id) {
+      if (!confirm('Phê duyệt giáo viên này?')) return;
+      try {
+        await approveTeacherApi(id);
+        alert('✅ Đã phê duyệt!');
+        await refreshAllCounts();
+        await loadTeachers('PENDING');
+      } catch (err) {
+        alert('❌ Lỗi: ' + (err.message || ''));
       }
     }
-
-    // Reject teacher
-    async function rejectTeacher(teacherId) {
+    async function rejectTeacher(id) {
       const reason = prompt('Nhập lý do từ chối:');
-      if (reason) {
-        try {
-          // API call
-          alert('Đã từ chối hồ sơ giáo viên!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
+      if (!reason) return;
+      try {
+        await rejectTeacherApi(id, reason);
+        alert('🚫 Đã từ chối hồ sơ.');
+        await refreshAllCounts();
+        await loadTeachers('PENDING');
+      } catch (err) {
+        alert('❌ Lỗi: ' + (err.message || ''));
       }
     }
-
-    // Suspend teacher
-    async function suspendTeacher(teacherId) {
+    async function suspendTeacher(id) {
       const reason = prompt('Nhập lý do tạm ngừng:');
-      if (reason) {
-        try {
-          // API call
-          alert('Đã tạm ngừng hoạt động giáo viên!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
+      if (!reason) return;
+      try {
+        await suspendTeacherApi(id, reason);
+        alert('🚫 Đã tạm ngừng hoạt động giáo viên.');
+        await refreshAllCounts();
+        await loadTeachers('APPROVED');
+      } catch (err) {
+        alert('❌ Lỗi: ' + (err.message || ''));
       }
     }
 
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      // Filter table rows based on search term
-    });
+    // ===== Tabs =====
+    function switchTab(tabName) {
+      const tabs = document.querySelectorAll('.tab');
+      const contents = document.querySelectorAll('.tab-content');
+      tabs.forEach(tab => tab.classList.remove('active'));
+      contents.forEach(content => content.style.display = 'none');
 
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('Bạn có chắc muốn đăng xuất?')) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
-      }
-    });
+      event.target.classList.add('active');
+      document.getElementById(tabName + 'Tab').style.display = 'block';
+
+      if (tabName === 'pending') loadTeachers('PENDING');
+      if (tabName === 'approved') loadTeachers('APPROVED');
+      if (tabName === 'rejected') loadTeachers('REJECTED');
+    }
   </script>
 </body>
 </html>

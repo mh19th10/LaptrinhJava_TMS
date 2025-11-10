@@ -1,57 +1,213 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Đăng ký lớp dạy - Giáo viên</title>
-  <link rel="stylesheet" href="assets/css/global.css">
-  <link rel="stylesheet" href="assets/css/dashboard.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng ký môn dạy - Giáo viên</title>
+  <link rel="stylesheet" href="assets/css/global.css" />
+  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <style>
+    /* ===== Nút & badge đồng bộ style với trang quản trị ===== */
+    .btn-group{display:flex;gap:8px;justify-content:flex-end}
+    .btn-approve{background:#16a34a;color:#fff}
+    .btn-approve:hover{filter:brightness(.95)}
+    .btn-pending{background:#0ea5e9;color:#fff}
+    .btn-pending[disabled]{opacity:.9;cursor:default}
+    .btn-reject{background:#ef4444;color:#fff}
+    .btn-reject:hover{filter:brightness(.95)}
+    .btn-outline{background:transparent;border:1px solid #cbd5e1;color:#334155}
+
+    .badge-approved{background:#dcfce7;color:#166534;padding:.25rem .5rem;border-radius:999px}
+    .badge-active{background:#dbeafe;color:#1e3a8a;padding:.25rem .5rem;border-radius:999px}
+    .badge-pending{background:#f1f5f9;color:#334155;padding:.25rem .5rem;border-radius:999px}
+
+    td.actions{text-align:right}
+  </style>
 </head>
 <body>
   <div class="app-container">
     <aside class="sidebar">
-      <div class="brand"><div class="logo">T</div><div><h3>TMS</h3><div class="small-muted">Giáo viên</div></div></div>
+      <div class="brand">
+        <div class="logo">T</div>
+        <div>
+          <h3>TMS</h3>
+          <div class="small-muted">Giáo viên</div>
+        </div>
+      </div>
       <nav class="nav">
-  <a href="dashboard_teacher.html">🏠 Trang chủ</a>
-  <a href="register-class_teacher.html">📚 Đăng ký lớp</a>
-  <a href="report_teacher.html">📄 Báo cáo</a>
-  <a href="profile_teacher.html">👤 Hồ sơ</a>
-  <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
-</nav>
-
+        <a href="dashboard_teacher.html">🏠 Trang chủ</a>
+        <a href="register-class_teacher.html" class="active">📚 Đăng ký môn</a>
+        <a href="report_teacher.html">📄 Báo cáo</a>
+        <a href="profile_teacher.html">👤 Hồ sơ</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
     </aside>
 
     <main class="main">
       <div class="header-row">
-        <div class="h1">Đăng ký lớp giảng dạy</div>
-        <div class="small-muted">Nhập thông tin để mở lớp mới</div>
+        <div>
+          <div class="h1">Đăng ký môn giảng dạy</div>
+          <div class="small-muted">Chọn môn để gửi yêu cầu cấp quyền (chờ admin duyệt)</div>
+        </div>
+        <div class="search-filter">
+          <input id="subjectSearch" class="input" placeholder="Tìm môn theo mã/tên/khối..." />
+          <button id="reloadBtn" class="btn">Tải lại</button>
+        </div>
       </div>
 
       <div class="card">
-        <form style="display:grid;gap:12px;max-width:640px">
-          <div>
-            <label class="small-muted">Tên môn học</label>
-            <input class="input" placeholder="VD: Toán, Lý, Hóa" />
-          </div>
-          <div>
-            <label class="small-muted">Địa điểm giảng dạy</label>
-            <input class="input" placeholder="VD: Trung tâm A, Trường B..." />
-          </div>
-          <div>
-            <label class="small-muted">Lịch học</label>
-            <input class="input" placeholder="VD: Thứ 3, 19h00 - 21h00" />
-          </div>
-          <div>
-            <label class="small-muted">Học phí (VNĐ)</label>
-            <input class="input" type="number" placeholder="VD: 800000" />
-          </div>
-          <button class="btn">Gửi đăng ký</button>
-        </form>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Mã môn</th>
+              <th>Tên môn</th>
+              <th>Khối</th>
+              <th>Trạng thái</th>
+              <th style="width:220px;text-align:right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="subjectsTbody">
+            <tr><td colspan="6">Đang tải...</td></tr>
+          </tbody>
+        </table>
       </div>
     </main>
   </div>
-  <script src="assets/js/api.js"></script>
-  <script src="assets/js/teacher.js"></script>
 
+  <!-- Utils: fetchJSON/requireLoginOrRedirect/requireRoleOrRedirect/wireLogout -->
+  <script src="assets/js/api.js"></script>
+  <script>
+    // ==== Endpoints (đổi nếu backend khác route) ====
+    const API_SUBJECTS     = '/api/subjects';                 // GET
+    const API_PERMS_LIST   = '/api/teacher/permissions';      // GET
+    const API_PERMS_CREATE = '/api/teacher/permissions';      // POST {subjectId}
+    const API_PERMS_DELETE = id => `/api/teacher/permissions/${id}`; // DELETE
+
+    document.addEventListener('DOMContentLoaded', initPage);
+
+    async function initPage() {
+      if (!requireLoginOrRedirect()) return;
+      if (!requireRoleOrRedirect('TEACHER')) return;
+      wireLogout('logoutBtn');
+
+      const tbody  = document.getElementById('subjectsTbody');
+      const inputQ = document.getElementById('subjectSearch');
+      const btnReload = document.getElementById('reloadBtn');
+
+      let SUBJECTS = [];
+      let MYPERMS  = [];
+
+      const fetchSubjects = () => fetchJSON(API_SUBJECTS);
+      const fetchMyPerms  = async () => {
+        try { return await fetchJSON(API_PERMS_LIST); }
+        catch (e) { console.warn('permissions API error:', e.message); return []; }
+      };
+      const createPerm = subjectId =>
+        fetchJSON(API_PERMS_CREATE, { method: 'POST', body: JSON.stringify({ subjectId }) });
+      const deletePerm = permId =>
+        fetchJSON(API_PERMS_DELETE(permId), { method: 'DELETE' });
+
+      function indexPerms(perms) {
+        const map = {};
+        for (const p of perms || []) {
+          const sid = (p?.subject?.id ?? p?.subjectId);
+          if (sid != null) map[sid] = p;
+        }
+        return map;
+      }
+
+      function render() {
+        const kw = (inputQ.value || '').toLowerCase();
+        const list = (SUBJECTS || []).filter(s =>
+          `${s.id} ${s.code||''} ${s.name||''} ${s.grade||''}`.toLowerCase().includes(kw)
+        );
+
+        tbody.innerHTML = '';
+        if (!list.length) {
+          tbody.innerHTML = `<tr><td colspan="6">Không có dữ liệu</td></tr>`;
+          return;
+        }
+
+        const bySid = indexPerms(MYPERMS);
+
+        for (const s of list) {
+          const p = bySid[s.id];
+
+          let statusHtml = `<span class="badge badge-pending">Chưa đăng ký</span>`;
+          let actionHtml = `
+            <div class="btn-group">
+              <button class="btn btn-approve" data-act="register" data-sid="${s.id}">Đăng ký</button>
+            </div>`;
+
+          if (p) {
+            if (p.active) {
+              statusHtml = `<span class="badge badge-approved">Đang hoạt động</span>`;
+              actionHtml = `<div class="btn-group"><button class="btn btn-outline" disabled>Đã cấp quyền</button></div>`;
+            } else {
+              statusHtml = `<span class="badge badge-active">Chờ duyệt</span>`;
+              actionHtml = `
+                <div class="btn-group">
+                  <button class="btn btn-pending" disabled>Đã gửi</button>
+                  <button class="btn btn-reject" data-act="revoke" data-pid="${p.id}">Hủy yêu cầu</button>
+                </div>`;
+            }
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${s.id}</td>
+            <td>${s.code || ''}</td>
+            <td>${s.name || ''}</td>
+            <td>${s.grade || ''}</td>
+            <td>${statusHtml}</td>
+            <td class="actions">${actionHtml}</td>`;
+          tbody.appendChild(tr);
+        }
+      }
+
+      async function loadAll() {
+        try {
+          tbody.innerHTML = `<tr><td colspan="6">Đang tải...</td></tr>`;
+          const [subs, perms] = await Promise.all([fetchSubjects(), fetchMyPerms()]);
+          SUBJECTS = Array.isArray(subs) ? subs : [];
+          MYPERMS  = Array.isArray(perms) ? perms : [];
+          render();
+        } catch (e) {
+          console.error('Load error:', e);
+          tbody.innerHTML = `<tr><td colspan="6">Lỗi tải dữ liệu</td></tr>`;
+          if (['UNAUTH','FORBIDDEN'].includes(String(e.message))) {
+            alert('Phiên đăng nhập hết hạn hoặc không đủ quyền.');
+            localStorage.clear(); location.href='login.html';
+          }
+        }
+      }
+
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('button[data-act]');
+        if (!btn) return;
+        try {
+          if (btn.dataset.act === 'register') {
+            await createPerm(+btn.dataset.sid);
+            alert('Đã gửi yêu cầu cấp quyền môn. Vui lòng chờ admin duyệt.');
+            await loadAll();
+          } else if (btn.dataset.act === 'revoke') {
+            if (!confirm('Hủy yêu cầu cho môn này?')) return;
+            await deletePerm(+btn.dataset.pid);
+            alert('Đã hủy yêu cầu.');
+            await loadAll();
+          }
+        } catch (err) {
+          console.error(err);
+          alert(err.message || 'Có lỗi xảy ra.');
+        }
+      });
+
+      inputQ.addEventListener('input', render);
+      btnReload.addEventListener('click', loadAll);
+
+      await loadAll();
+    }
+  </script>
 </body>
 </html>

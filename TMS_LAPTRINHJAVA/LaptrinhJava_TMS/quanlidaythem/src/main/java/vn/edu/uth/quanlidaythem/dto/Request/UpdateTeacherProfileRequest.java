@@ -1,28 +1,39 @@
 package vn.edu.uth.quanlidaythem.dto.Request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
 
 public class UpdateTeacherProfileRequest {
-    @Size(max = 100)
     private String fullName;
-
-    @Email @Size(max = 120)
-    private String email;
-
-    @Size(max = 20)
     private String phone;
-
-    @Size(max = 50)
     private String mainSubject;
 
-    // getters/setters
+    private LocalDate dob;      // yyyy-MM-dd
+    private String degree;      // Cử nhân/ThS/TS...
+    private Integer experience; // số năm
+    private String address;
+    private String bio;
+
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
     public String getMainSubject() { return mainSubject; }
     public void setMainSubject(String mainSubject) { this.mainSubject = mainSubject; }
+
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
+
+    public String getDegree() { return degree; }
+    public void setDegree(String degree) { this.degree = degree; }
+
+    public Integer getExperience() { return experience; }
+    public void setExperience(Integer experience) { this.experience = experience; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 }

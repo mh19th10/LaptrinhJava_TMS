@@ -1,6 +1,6 @@
-// assets/js/api.js
+// ===== Auth helpers =====
 function getToken() {
-  return localStorage.getItem('jwtToken'); // được set sau khi login
+  return localStorage.getItem('jwtToken');
 }
 function getRole() {
   return (localStorage.getItem('userRole') || '').toUpperCase();
@@ -34,7 +34,6 @@ function requireLoginOrRedirect() {
   }
   return true;
 }
-
 function requireRoleOrRedirect(role) {
   if (getRole() !== role.toUpperCase()) {
     if (role === 'TEACHER' && getRole() === 'STUDENT') {
@@ -46,7 +45,6 @@ function requireRoleOrRedirect(role) {
   }
   return true;
 }
-
 function wireLogout(anchorId = 'logoutBtn') {
   const a = document.getElementById(anchorId);
   if (!a) return;
@@ -54,5 +52,56 @@ function wireLogout(anchorId = 'logoutBtn') {
     e.preventDefault();
     localStorage.clear();
     location.href = 'login.html';
+  });
+}
+
+// ===== SUBJECTS =====
+async function listSubjectsApi() {
+  return await fetchJSON('/api/subjects');
+}
+
+// ===== TEACHER PERMISSIONS (đăng ký môn) =====
+async function listMyPermissionsApi() {
+  return await fetchJSON('/api/teacher/permissions');
+}
+async function createPermissionApi(subjectId) {
+  return await fetchJSON('/api/teacher/permissions', {
+    method: 'POST',
+    body: JSON.stringify({ subjectId })
+  });
+}
+async function revokePermissionApi(permId) {
+  return await fetchJSON(`/api/teacher/permissions/${permId}`, {
+    method: 'DELETE'
+  });
+}
+
+// ===== (Admin teacher list – nếu bạn dùng) =====
+async function listTeachersApi({ status, subject, q } = {}) {
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (subject) params.set('subject', subject);
+  if (q) params.set('q', q);
+  const qs = params.toString() ? '?' + params.toString() : '';
+  return await fetchJSON('/api/admin/teachers' + qs);
+}
+async function getTeacherApi(id) {
+  return await fetchJSON(`/api/admin/teachers/${id}`);
+}
+async function approveTeacherApi(id) {
+  return await fetchJSON(`/api/admin/teachers/${id}/approve`, { method: 'POST' });
+}
+async function rejectTeacherApi(id, reason) {
+  const body = reason ? { reason } : {};
+  return await fetchJSON(`/api/admin/teachers/${id}/reject`, {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+}
+async function suspendTeacherApi(id, reason) {
+  const body = reason ? { reason } : {};
+  return await fetchJSON(`/api/admin/teachers/${id}/suspend`, {
+    method: 'POST',
+    body: JSON.stringify(body)
   });
 }

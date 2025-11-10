@@ -1,5 +1,7 @@
 package vn.edu.uth.quanlidaythem.domain;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,22 +17,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Tên đăng nhập (bắt buộc & không trùng)
+    // ====== Đăng nhập ======
     @Column(nullable = false, unique = true, length = 100)
     private String username;
 
-    // Mật khẩu (BCrypt)
     @Column(nullable = false, length = 100)
     private String password;
 
     @Column(length = 100)
     private String fullName;
 
-    // VD: ADMIN / TEACHER / STUDENT (hoặc ROLE_ADMIN/ROLE_TEACHER/ROLE_STUDENT tuỳ bạn map)
     @Column(length = 30)
-    private String role;
+    private String role; // ADMIN / TEACHER / STUDENT
 
-    // ====== BỔ SUNG CHO HỒ SƠ ======
+    // ====== Thông tin cơ bản ======
     @Column(length = 120)
     private String email;
 
@@ -39,6 +39,22 @@ public class User {
 
     @Column(length = 50)
     private String mainSubject;
+
+    // ====== Hồ sơ chi tiết ======
+    @Column(name = "dob")
+    private LocalDate dob; // ngày sinh
+
+    @Column(length = 100)
+    private String degree; // trình độ (Cử nhân, Thạc sĩ, TS, ...)
+
+    @Column
+    private Integer experience; // số năm kinh nghiệm
+
+    @Column(length = 255)
+    private String address; // địa chỉ
+
+    @Column(length = 1000)
+    private String bio; // mô tả bản thân, giới thiệu, thành tích, ...
 
     // ====== Constructors ======
     public User() {}
@@ -85,4 +101,19 @@ public class User {
 
     public String getMainSubject() { return mainSubject; }
     public void setMainSubject(String mainSubject) { this.mainSubject = mainSubject; }
+
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
+
+    public String getDegree() { return degree; }
+    public void setDegree(String degree) { this.degree = degree; }
+
+    public Integer getExperience() { return experience; }
+    public void setExperience(Integer experience) { this.experience = experience; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 }
