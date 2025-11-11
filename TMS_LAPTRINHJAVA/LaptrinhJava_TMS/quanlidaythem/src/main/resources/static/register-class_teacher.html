@@ -1,26 +1,23 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Đăng ký môn dạy - Giáo viên</title>
-  <link rel="stylesheet" href="assets/css/global.css" />
-  <link rel="stylesheet" href="assets/css/dashboard.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Đăng ký mở lớp - Giáo viên</title>
+  <link rel="stylesheet" href="assets/css/global.css">
+  <link rel="stylesheet" href="assets/css/dashboard.css">
   <style>
-    /* ===== Nút & badge đồng bộ style với trang quản trị ===== */
-    .btn-group{display:flex;gap:8px;justify-content:flex-end}
-    .btn-approve{background:#16a34a;color:#fff}
-    .btn-approve:hover{filter:brightness(.95)}
-    .btn-pending{background:#0ea5e9;color:#fff}
-    .btn-pending[disabled]{opacity:.9;cursor:default}
-    .btn-reject{background:#ef4444;color:#fff}
-    .btn-reject:hover{filter:brightness(.95)}
+    .grid {display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:14px}
+    @media (max-width: 900px){ .grid {grid-template-columns: 1fr} }
+    .card h3 {margin:0 0 8px}
+    .muted {font-size:12px;color:#64748b}
+    .btn-primary{background:#2563eb;color:#fff}
+    .btn-danger{background:#ef4444;color:#fff}
     .btn-outline{background:transparent;border:1px solid #cbd5e1;color:#334155}
-
+    .btn-group{display:flex;gap:8px;justify-content:flex-end}
     .badge-approved{background:#dcfce7;color:#166534;padding:.25rem .5rem;border-radius:999px}
-    .badge-active{background:#dbeafe;color:#1e3a8a;padding:.25rem .5rem;border-radius:999px}
-    .badge-pending{background:#f1f5f9;color:#334155;padding:.25rem .5rem;border-radius:999px}
-
+    .badge-pending{background:#dbeafe;color:#1e3a8a;padding:.25rem .5rem;border-radius:999px}
+    .badge-rejected{background:#fee2e2;color:#991b1b;padding:.25rem .5rem;border-radius:999px}
     td.actions{text-align:right}
   </style>
 </head>
@@ -36,7 +33,8 @@
       </div>
       <nav class="nav">
         <a href="dashboard_teacher.html">🏠 Trang chủ</a>
-        <a href="register-class_teacher.html" class="active">📚 Đăng ký môn</a>
+        <a href="register-subject_teacher.html">📚 Đăng ký môn</a>
+        <a href="register-class_teacher_new.html" class="active">🗂️ Đăng ký mở lớp</a>
         <a href="report_teacher.html">📄 Báo cáo</a>
         <a href="profile_teacher.html">👤 Hồ sơ</a>
         <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
@@ -46,168 +44,250 @@
     <main class="main">
       <div class="header-row">
         <div>
-          <div class="h1">Đăng ký môn giảng dạy</div>
-          <div class="small-muted">Chọn môn để gửi yêu cầu cấp quyền (chờ admin duyệt)</div>
-        </div>
-        <div class="search-filter">
-          <input id="subjectSearch" class="input" placeholder="Tìm môn theo mã/tên/khối..." />
-          <button id="reloadBtn" class="btn">Tải lại</button>
+          <div class="h1">Đăng ký mở lớp</div>
+          <div class="small-muted">Nhập thông tin lớp muốn mở và gửi admin duyệt</div>
         </div>
       </div>
 
-      <div class="card">
+      <!-- FORM ĐĂNG KÝ -->
+      <div class="card" style="max-width:980px">
+        <h3>Thông tin lớp đề nghị</h3>
+        <div class="grid">
+          <div>
+            <label class="small-muted">Tên lớp <span style="color:#ef4444">*</span></label>
+            <input id="inpName" class="input" placeholder="VD: Toán 12 - Luyện thi THPT" required>
+          </div>
+
+          <div>
+            <label class="small-muted">Môn học <span style="color:#ef4444">*</span></label>
+            <select id="selSubject" class="input"></select>
+          </div>
+
+          <div>
+            <label class="small-muted">Sĩ số tối đa</label>
+            <input id="inpCapacity" class="input" type="number" min="1" placeholder="VD: 30">
+          </div>
+
+          <div>
+            <label class="small-muted">Hình thức</label>
+            <select id="selMode" class="input">
+              <option value="Trong trường">Trong trường</option>
+              <option value="Ngoài trường">Ngoài trường</option>
+              <option value="Online">Online</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="small-muted">Ngày bắt đầu (tuỳ chọn)</label>
+            <input id="inpStartDate" class="input" type="date">
+          </div>
+
+          <div>
+            <label class="small-muted">Địa điểm (nếu có)</label>
+            <input id="inpLocation" class="input" placeholder="VD: P.302 - Cơ sở A">
+          </div>
+
+          <div style="grid-column:1/-1">
+            <label class="small-muted">Lịch học (tự do) <span style="color:#ef4444">*</span></label>
+            <input id="inpSchedule" class="input" placeholder="VD: T2, T5 (19:00 - 21:00)">
+          </div>
+
+          <div style="grid-column:1/-1">
+            <label class="small-muted">Học phí / ghi chú</label>
+            <textarea id="inpNote" class="input" rows="3" placeholder="VD: 800k/tháng. Ghi chú thêm..."></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnSubmit" class="btn btn-primary">Gửi đăng ký</button>
+          <button id="btnReset" class="btn btn-outline" type="button">Làm mới</button>
+        </div>
+      </div>
+
+      <!-- DANH SÁCH YÊU CẦU CỦA TÔI -->
+      <div class="card" style="margin-top:16px">
+        <div class="h2" style="margin:0 0 8px">Yêu cầu tôi đã gửi</div>
         <table class="table">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Mã môn</th>
-              <th>Tên môn</th>
-              <th>Khối</th>
+              <th>Tên lớp</th>
+              <th>Môn</th>
+              <th>Sĩ số</th>
+              <th>Lịch học</th>
               <th>Trạng thái</th>
-              <th style="width:220px;text-align:right">Hành động</th>
+              <th style="width:180px;text-align:right">Hành động</th>
             </tr>
           </thead>
-          <tbody id="subjectsTbody">
-            <tr><td colspan="6">Đang tải...</td></tr>
+          <tbody id="tbodyMyReqs">
+            <tr><td colspan="7">Đang tải...</td></tr>
           </tbody>
         </table>
       </div>
     </main>
   </div>
 
-  <!-- Utils: fetchJSON/requireLoginOrRedirect/requireRoleOrRedirect/wireLogout -->
   <script src="assets/js/api.js"></script>
   <script>
-    // ==== Endpoints (đổi nếu backend khác route) ====
-    const API_SUBJECTS     = '/api/subjects';                 // GET
-    const API_PERMS_LIST   = '/api/teacher/permissions';      // GET
-    const API_PERMS_CREATE = '/api/teacher/permissions';      // POST {subjectId}
-    const API_PERMS_DELETE = id => `/api/teacher/permissions/${id}`; // DELETE
+    // ==== API endpoints ====
+    const API_SUBJECTS   = '/api/subjects';                            // GET
+    const API_MY_REQS    = '/api/teacher/registrations';               // GET (trả DTO theo phần BE bên dưới)
+    const API_CREATE_CUS = '/api/teacher/registrations/custom';               // POST (1 endpoint hợp nhất: classId hoặc custom)
+    const API_DELETE     = (id) => `/api/teacher/registrations/${id}`; // DELETE (hủy khi PENDING)
 
-    document.addEventListener('DOMContentLoaded', initPage);
+    // ===== SUBJECT CACHE =====
+    let SUBJECTS = [];
+    let SUBJECT_NAME_BY_ID = {};
 
-    async function initPage() {
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init(){
       if (!requireLoginOrRedirect()) return;
       if (!requireRoleOrRedirect('TEACHER')) return;
       wireLogout('logoutBtn');
 
-      const tbody  = document.getElementById('subjectsTbody');
-      const inputQ = document.getElementById('subjectSearch');
-      const btnReload = document.getElementById('reloadBtn');
+      await loadSubjects();          // đổ select + tạo map
+      await loadMyRequests();
 
-      let SUBJECTS = [];
-      let MYPERMS  = [];
-
-      const fetchSubjects = () => fetchJSON(API_SUBJECTS);
-      const fetchMyPerms  = async () => {
-        try { return await fetchJSON(API_PERMS_LIST); }
-        catch (e) { console.warn('permissions API error:', e.message); return []; }
-      };
-      const createPerm = subjectId =>
-        fetchJSON(API_PERMS_CREATE, { method: 'POST', body: JSON.stringify({ subjectId }) });
-      const deletePerm = permId =>
-        fetchJSON(API_PERMS_DELETE(permId), { method: 'DELETE' });
-
-      function indexPerms(perms) {
-        const map = {};
-        for (const p of perms || []) {
-          const sid = (p?.subject?.id ?? p?.subjectId);
-          if (sid != null) map[sid] = p;
-        }
-        return map;
-      }
-
-      function render() {
-        const kw = (inputQ.value || '').toLowerCase();
-        const list = (SUBJECTS || []).filter(s =>
-          `${s.id} ${s.code||''} ${s.name||''} ${s.grade||''}`.toLowerCase().includes(kw)
-        );
-
-        tbody.innerHTML = '';
-        if (!list.length) {
-          tbody.innerHTML = `<tr><td colspan="6">Không có dữ liệu</td></tr>`;
-          return;
-        }
-
-        const bySid = indexPerms(MYPERMS);
-
-        for (const s of list) {
-          const p = bySid[s.id];
-
-          let statusHtml = `<span class="badge badge-pending">Chưa đăng ký</span>`;
-          let actionHtml = `
-            <div class="btn-group">
-              <button class="btn btn-approve" data-act="register" data-sid="${s.id}">Đăng ký</button>
-            </div>`;
-
-          if (p) {
-            if (p.active) {
-              statusHtml = `<span class="badge badge-approved">Đang hoạt động</span>`;
-              actionHtml = `<div class="btn-group"><button class="btn btn-outline" disabled>Đã cấp quyền</button></div>`;
-            } else {
-              statusHtml = `<span class="badge badge-active">Chờ duyệt</span>`;
-              actionHtml = `
-                <div class="btn-group">
-                  <button class="btn btn-pending" disabled>Đã gửi</button>
-                  <button class="btn btn-reject" data-act="revoke" data-pid="${p.id}">Hủy yêu cầu</button>
-                </div>`;
-            }
-          }
-
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${s.id}</td>
-            <td>${s.code || ''}</td>
-            <td>${s.name || ''}</td>
-            <td>${s.grade || ''}</td>
-            <td>${statusHtml}</td>
-            <td class="actions">${actionHtml}</td>`;
-          tbody.appendChild(tr);
-        }
-      }
-
-      async function loadAll() {
-        try {
-          tbody.innerHTML = `<tr><td colspan="6">Đang tải...</td></tr>`;
-          const [subs, perms] = await Promise.all([fetchSubjects(), fetchMyPerms()]);
-          SUBJECTS = Array.isArray(subs) ? subs : [];
-          MYPERMS  = Array.isArray(perms) ? perms : [];
-          render();
-        } catch (e) {
-          console.error('Load error:', e);
-          tbody.innerHTML = `<tr><td colspan="6">Lỗi tải dữ liệu</td></tr>`;
-          if (['UNAUTH','FORBIDDEN'].includes(String(e.message))) {
-            alert('Phiên đăng nhập hết hạn hoặc không đủ quyền.');
-            localStorage.clear(); location.href='login.html';
-          }
-        }
-      }
-
-      document.addEventListener('click', async (ev) => {
-        const btn = ev.target.closest('button[data-act]');
-        if (!btn) return;
-        try {
-          if (btn.dataset.act === 'register') {
-            await createPerm(+btn.dataset.sid);
-            alert('Đã gửi yêu cầu cấp quyền môn. Vui lòng chờ admin duyệt.');
-            await loadAll();
-          } else if (btn.dataset.act === 'revoke') {
-            if (!confirm('Hủy yêu cầu cho môn này?')) return;
-            await deletePerm(+btn.dataset.pid);
-            alert('Đã hủy yêu cầu.');
-            await loadAll();
-          }
-        } catch (err) {
-          console.error(err);
-          alert(err.message || 'Có lỗi xảy ra.');
-        }
+      document.getElementById('btnSubmit').addEventListener('click', submitForm);
+      document.getElementById('btnReset').addEventListener('click', () => {
+        document.getElementById('inpName').value='';
+        document.getElementById('inpCapacity').value='';
+        document.getElementById('inpStartDate').value='';
+        document.getElementById('inpLocation').value='';
+        document.getElementById('inpSchedule').value='';
+        document.getElementById('inpNote').value='';
+        document.getElementById('selSubject').value='';
+        document.getElementById('selMode').value='Trong trường';
       });
 
-      inputQ.addEventListener('input', render);
-      btnReload.addEventListener('click', loadAll);
-
-      await loadAll();
+      document.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-act]');
+        if(!btn) return;
+        if (btn.dataset.act === 'cancel') {
+          const id = +btn.dataset.id;
+          if (confirm('Hủy yêu cầu này?')) {
+            try {
+              await fetchJSON(API_DELETE(id), { method:'DELETE' });
+              await loadMyRequests();
+            } catch (err) {
+              alert(err.message || 'Không thể hủy yêu cầu');
+            }
+          }
+        }
+      });
     }
+
+    async function loadSubjects(){
+      const sel = document.getElementById('selSubject');
+      sel.innerHTML = `<option value="">Đang tải...</option>`;
+      try {
+        const data = await fetchJSON(API_SUBJECTS);
+        const arr = Array.isArray(data) ? data : (data?.content || []);
+        SUBJECTS = arr;
+        SUBJECT_NAME_BY_ID = {};
+        sel.innerHTML = `<option value="">-- Chọn môn --</option>` + 
+          arr.map(s => {
+            SUBJECT_NAME_BY_ID[Number(s.id)] = s.name || s.subjectName || ('Môn ' + s.id);
+            return `<option value="${s.id}">${s.code || ''} - ${s.name || ''} ${s.grade?('('+s.grade+')'):''}</option>`;
+          }).join('');
+      } catch (e) {
+        sel.innerHTML = `<option value="">(Lỗi tải danh sách môn)</option>`;
+        console.error(e);
+      }
+    }
+
+    function buildPayload(){
+      return {
+        classId:    null, // nếu muốn đăng ký vào lớp có sẵn, set số id ở đây
+        className:  document.getElementById('inpName').value.trim(),
+        subjectId:  +document.getElementById('selSubject').value || null,
+        capacity:   toNum(document.getElementById('inpCapacity').value),
+        mode:       document.getElementById('selMode').value,
+        startDate:  document.getElementById('inpStartDate').value || null,
+        location:   document.getElementById('inpLocation').value.trim(),
+        schedule:   document.getElementById('inpSchedule').value.trim(),
+        note:       document.getElementById('inpNote').value.trim()
+      };
+      function toNum(v){ const n = Number(v); return Number.isFinite(n) && n>0 ? n : null; }
+    }
+
+    async function submitForm(){
+      const payload = buildPayload();
+
+      // Validate nhanh
+      if (!payload.className) return alert('Vui lòng nhập Tên lớp');
+      if (!payload.subjectId) return alert('Vui lòng chọn Môn học');
+      if (!payload.schedule)  return alert('Vui lòng nhập Lịch học');
+
+      try{
+        // 1 endpoint hợp nhất: có classId -> vào lớp có sẵn; null -> custom
+        await fetchJSON(API_CREATE_CUS, { method:'POST', body: JSON.stringify(payload) });
+        alert('Đã gửi đăng ký mở lớp. Vui lòng chờ admin duyệt.');
+        await loadMyRequests();
+      }catch(e){
+        console.error(e);
+        alert(e.message || 'Không thể gửi đăng ký');
+      }
+    }
+
+    function subjectNameOf(r) {
+      // Ưu tiên DTO từ BE
+      if (r?.subjectName) return r.subjectName;
+      // Nếu BE vẫn trả entity thay vì DTO
+      if (r?.subject?.name) return r.subject.name;
+      if (r?.teachingClass?.subject?.name) return r.teachingClass.subject.name;
+      // Fallback theo id
+      const sid = r?.subjectId ?? r?.subject?.id ?? r?.teachingClass?.subject?.id;
+      if (sid != null && SUBJECT_NAME_BY_ID[Number(sid)]) return SUBJECT_NAME_BY_ID[Number(sid)];
+      return '-';
+    }
+
+    async function loadMyRequests(){
+      const tbody = document.getElementById('tbodyMyReqs');
+      tbody.innerHTML = `<tr><td colspan="7">Đang tải...</td></tr>`;
+      try{
+        const list = await fetchJSON(API_MY_REQS);
+        const arr = Array.isArray(list) ? list : (list?.content || []);
+        const rows = arr.map(r => {
+          const name = r.teachingClassName || r.teachingClass?.name || r.className || '-';
+          const subjectName = subjectNameOf(r);
+          const capacity = r.teachingClass?.capacity ?? r.capacity ?? '-';
+          const schedule = r.schedule || r.teachingClass?.scheduleText || '-';
+          const status = (r.status || 'PENDING').toUpperCase();
+
+          let badge = `<span class="badge-pending">Chờ duyệt</span>`;
+          if (status === 'APPROVED') badge = `<span class="badge-approved">Đã duyệt</span>`;
+          if (status === 'REJECTED') badge = `<span class="badge-rejected">Bị từ chối</span>`;
+
+          let actions = `<div class="btn-group"><button class="btn btn-outline" disabled>Không thao tác</button></div>`;
+          if (status === 'PENDING') {
+            actions = `
+              <div class="btn-group">
+                <button class="btn btn-danger" data-act="cancel" data-id="${r.id}">Hủy yêu cầu</button>
+              </div>`;
+          }
+
+          return `
+            <tr>
+              <td>${r.id}</td>
+              <td>${escapeHtml(name)}</td>
+              <td>${escapeHtml(subjectName)}</td>
+              <td>${capacity}</td>
+              <td>${escapeHtml(schedule)}</td>
+              <td>${badge}</td>
+              <td class="actions">${actions}</td>
+            </tr>`;
+        }).join('');
+
+        tbody.innerHTML = rows || `<tr><td colspan="7">Chưa có yêu cầu nào</td></tr>`;
+      }catch(e){
+        console.error(e);
+        tbody.innerHTML = `<tr><td colspan="7">Lỗi tải dữ liệu</td></tr>`;
+      }
+    }
+
+    function escapeHtml(s){ return (s??'').toString().replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
   </script>
 </body>
 </html>

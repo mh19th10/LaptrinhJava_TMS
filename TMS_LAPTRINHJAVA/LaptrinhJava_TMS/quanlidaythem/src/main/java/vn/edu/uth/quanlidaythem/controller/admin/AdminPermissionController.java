@@ -1,6 +1,7 @@
 package vn.edu.uth.quanlidaythem.controller.admin;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,35 +26,33 @@ public class AdminPermissionController {
         this.approvalService = approvalService;
     }
 
-    /** Xem toàn bộ permission của 1 giáo viên */
+    // Xem toàn bộ permission của 1 giáo viên
     @GetMapping("/teacher/{teacherId}")
-    public ResponseEntity<List<TeacherSubjectPermission>> byTeacher(@PathVariable Long teacherId) {
+    public ResponseEntity<List<TeacherSubjectPermission>> listByTeacher(@PathVariable Long teacherId) {
         return ResponseEntity.ok(approvalService.listPermissionsByTeacher(teacherId));
     }
 
-    /** DUYỆT 1 permission */
+    // Duyệt 1 permission
     @PostMapping("/{permissionId}/approve")
     public ResponseEntity<TeacherSubjectPermission> approve(@PathVariable Long permissionId) {
         return ResponseEntity.ok(approvalService.approvePermission(permissionId));
     }
 
-    /** TỪ CHỐI 1 permission */
-    public static class ReasonDTO { public String reason; }
-
+    // Từ chối 1 permission (optional reason)
     @PostMapping("/{permissionId}/reject")
-    public ResponseEntity<TeacherSubjectPermission> reject(
-            @PathVariable Long permissionId,
-            @RequestBody(required = false) ReasonDTO body) {
-        return ResponseEntity.ok(approvalService.rejectPermission(permissionId, body != null ? body.reason : null));
+    public ResponseEntity<TeacherSubjectPermission> reject(@PathVariable Long permissionId,
+                                                           @RequestBody(required = false) Map<String, String> body) {
+        String reason = body != null ? body.get("reason") : null;
+        return ResponseEntity.ok(approvalService.rejectPermission(permissionId, reason));
     }
 
-    /** DUYỆT tất cả permission của 1 GV */
+    // Duyệt tất cả permission của 1 giáo viên
     @PostMapping("/teacher/{teacherId}/approve-all")
     public ResponseEntity<Integer> approveAll(@PathVariable Long teacherId) {
         return ResponseEntity.ok(approvalService.approveAllByTeacher(teacherId));
     }
 
-    /** TẮT tất cả permission của 1 GV */
+    // Tắt tất cả permission của 1 giáo viên
     @PostMapping("/teacher/{teacherId}/reject-all")
     public ResponseEntity<Integer> rejectAll(@PathVariable Long teacherId) {
         return ResponseEntity.ok(approvalService.rejectAllByTeacher(teacherId));
