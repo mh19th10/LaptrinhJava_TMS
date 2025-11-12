@@ -93,7 +93,7 @@ public class AdminTeacherService {
         List<TeacherAdminView> out = new ArrayList<>();
 
         for (User u : all) {
-            if (!"TEACHER".equalsIgnoreCase(u.getRole())) continue;
+            if (!"TEACHER".equalsIgnoreCase(RoleUtils.normalize(u.getRole()))) continue;
 
             var perms = permRepo.findByTeacherId(u.getId());
             var view  = mapToView(u, perms);

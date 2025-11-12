@@ -20,7 +20,7 @@ public class StudentService {
     public UserInfoResponse getInfo(String username) {
         User u = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return new UserInfoResponse(u.getId(), u.getUsername(), u.getFullName(), u.getRole());
+        return new UserInfoResponse(u.getId(), u.getUsername(), u.getFullName(), RoleUtils.normalize(u.getRole()));
     }
 
     public UserInfoResponse getProfile(String username) {

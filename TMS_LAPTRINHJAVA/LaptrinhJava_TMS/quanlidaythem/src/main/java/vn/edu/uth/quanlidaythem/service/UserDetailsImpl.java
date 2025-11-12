@@ -21,7 +21,7 @@ public class UserDetailsImpl implements UserDetails {
         this.username = username;
         this.fullName = fullName;
         this.password = password;
-        this.role = role;
+        this.role = RoleUtils.normalize(role);
     }
 
     public static UserDetailsImpl build(User user) {
@@ -40,10 +40,8 @@ public class UserDetailsImpl implements UserDetails {
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Tên vai trò phải là uppercase để khớp với hasRole("STUDENT")
-        String roleName = this.role != null ? this.role.toUpperCase() : "GUEST"; 
-        String authorityString = "ROLE_" + roleName;
-        
+        String authorityString = "ROLE_" + role;
+
         System.out.println("\n\n!!! [DEBUG-2] Đang tạo quyền cho Spring Security: '" + authorityString + "'\n\n");
         
         // ✅ SỬA LỖI: Sử dụng SimpleGrantedAuthority, cách chuẩn nhất

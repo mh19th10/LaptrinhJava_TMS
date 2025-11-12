@@ -29,26 +29,6 @@ public class AuthService {
         this.jwtUtils = jwtUtils;
     }
 
-    // Chuẩn hoá role về EN để khớp SecurityConfig
-    private String normalizeRole(String input) {
-        if (input == null) return "STUDENT";
-        String r = input.trim().toUpperCase();
-        switch (r) {
-            case "STUDENT":
-            case "HOC_SINH":
-            case "HỌC SINH":
-                return "STUDENT";
-            case "TEACHER":
-            case "GIAO_VIEN":
-            case "GIÁO VIÊN":
-                return "TEACHER";
-            case "ADMIN":
-                return "ADMIN";
-            default:
-                return "STUDENT";
-        }
-    }
-
     /** Đăng ký người dùng */
     public User registerNewUser(RegisterRequest request) {
         String username = request.getUsername().trim();
@@ -60,7 +40,7 @@ public class AuthService {
         User user = new User();
         user.setUsername(username);
         user.setFullName(request.getFullName());
-        user.setRole(normalizeRole(request.getRole()));          // ⬅️ quan trọng
+        user.setRole(RoleUtils.normalize(request.getRole()));          // ⬅️ quan trọng
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         return userRepository.save(user);

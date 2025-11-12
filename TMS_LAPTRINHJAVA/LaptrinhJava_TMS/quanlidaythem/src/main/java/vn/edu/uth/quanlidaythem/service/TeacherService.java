@@ -22,7 +22,7 @@ public class TeacherService {
     public UserInfoResponse getInfo(String username) {
         User u = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return new UserInfoResponse(u.getId(), u.getUsername(), u.getFullName(), u.getRole());
+        return new UserInfoResponse(u.getId(), u.getUsername(), u.getFullName(), RoleUtils.normalize(u.getRole()));
     }
 
     // Mock dữ liệu để FE hiển thị (sau này thay bằng query DB thực)
