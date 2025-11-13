@@ -58,15 +58,27 @@ public class TeacherProfileService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên: " + username));
 
         try {
-            if (req.getFullName() != null) u.setFullName(req.getFullName());
-            if (req.getPhone() != null) u.setPhone(req.getPhone());
-            if (req.getMainSubject() != null) u.setMainSubject(req.getMainSubject());
+            if (req.getFullName() != null) {
+                u.setFullName(req.getFullName().trim());
+            }
+            if (req.getPhone() != null) {
+                u.setPhone(req.getPhone().trim());
+            }
+            if (req.getMainSubject() != null) {
+                u.setMainSubject(req.getMainSubject().trim());
+            }
 
             if (req.getDob() != null) u.setDob(req.getDob());
-            if (req.getDegree() != null) u.setDegree(req.getDegree());
+            if (req.getDegree() != null) {
+                u.setDegree(req.getDegree().trim());
+            }
             if (req.getExperience() != null) u.setExperience(req.getExperience());
-            if (req.getAddress() != null) u.setAddress(req.getAddress());
-            if (req.getBio() != null) u.setBio(req.getBio());
+            if (req.getAddress() != null) {
+                u.setAddress(req.getAddress().trim());
+            }
+            if (req.getBio() != null) {
+                u.setBio(req.getBio().trim());
+            }
 
             userRepo.save(u);
             return mapToResponse(u, true, "Cập nhật hồ sơ thành công!");

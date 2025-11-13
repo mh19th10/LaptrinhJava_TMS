@@ -106,17 +106,29 @@
     async start() {
       // Guard đăng nhập & role
       const token = localStorage.getItem('jwtToken');
-      const user  = JSON.parse(localStorage.getItem('currentUser') || '{}');
       if (!token) { location.href = 'login.html'; return; }
+
+      let user = {};
+      try {
+        user = JSON.parse(localStorage.getItem('currentUser') || '{}') || {};
+      } catch (_) {
+        user = {};
+      }
+      if (!user.role) {
+        user.role = localStorage.getItem('userRole') || '';
+      }
+      if (!user.fullName) {
+        user.fullName = localStorage.getItem('username') || '';
+      }
+
       if ((user.role || '').toUpperCase() !== 'ADMIN') {
-        // tuỳ bạn điều hướng về trang tương ứng role
-        location.href = 'dashboard.html';
+        location.href = 'login.html';
         return;
       }
 
       // Avatar + tên
-      q('#user-display-name').textContent = user.fullName || 'Quản trị viên';
-      q('#user-avatar').textContent = getAbbreviatedName(user.fullName);
+      q('#user-display-name').textContent = user.fullName || user.username || 'Quản trị viên';
+      q('#user-avatar').textContent = getAbbreviatedName(user.fullName || user.username);
 
       // Nav
       document.querySelectorAll('.menu-item').forEach(it => {

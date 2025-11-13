@@ -6,6 +6,7 @@ function getRole() {
   return (localStorage.getItem('userRole') || '').toUpperCase();
 }
 
+// fetchJSON function
 async function fetchJSON(url, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set('Accept', 'application/json');
@@ -38,6 +39,7 @@ function requireLoginOrRedirect() {
   }
   return true;
 }
+
 function requireRoleOrRedirect(role) {
   if (getRole() !== role.toUpperCase()) {
     if (role === 'TEACHER' && getRole() === 'STUDENT') {
@@ -49,6 +51,7 @@ function requireRoleOrRedirect(role) {
   }
   return true;
 }
+
 function wireLogout(anchorId = 'logoutBtn') {
   const a = document.getElementById(anchorId);
   if (!a) return;
@@ -58,6 +61,13 @@ function wireLogout(anchorId = 'logoutBtn') {
     location.href = 'login.html';
   });
 }
+
+// Export các hàm ra window để các file script thông thường có thể sử dụng
+window.fetchJSON = fetchJSON;
+window.requireLoginOrRedirect = requireLoginOrRedirect;
+window.requireRoleOrRedirect = requireRoleOrRedirect;
+window.wireLogout = wireLogout;
+window.getToken = getToken; // Export getToken cho profile_teacher.html dùng ES6 module
 
 // ===== SUBJECTS =====
 async function listSubjectsApi() {

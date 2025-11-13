@@ -75,6 +75,9 @@ public class SecurityConfig {
                 // auth
                 .requestMatchers("/api/auth/**").permitAll()
 
+                // account: cho tất cả authenticated users (đổi mật khẩu, cập nhật profile chung)
+                .requestMatchers("/api/account/**").authenticated()
+
                 // catalog: cho TEACHER/ADMIN được xem danh sách môn
                 .requestMatchers(HttpMethod.GET, "/api/subjects", "/api/subjects/**")
                     .hasAnyRole("TEACHER","ADMIN")

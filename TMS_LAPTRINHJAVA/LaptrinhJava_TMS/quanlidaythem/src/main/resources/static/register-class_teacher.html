@@ -60,7 +60,9 @@
 
           <div>
             <label class="small-muted">Môn học <span style="color:#ef4444">*</span></label>
-            <select id="selSubject" class="input"></select>
+            <select id="selSubject" class="input" required>
+              <option value="">Chọn môn học</option>
+            </select>
           </div>
 
           <div>
@@ -181,18 +183,25 @@
     async function loadSubjects(){
       const sel = document.getElementById('selSubject');
       sel.innerHTML = `<option value="">Đang tải...</option>`;
+      sel.disabled = true;
       try {
         const data = await fetchJSON(API_SUBJECTS);
         const arr = Array.isArray(data) ? data : (data?.content || []);
         SUBJECTS = arr;
         SUBJECT_NAME_BY_ID = {};
-        sel.innerHTML = `<option value="">-- Chọn môn --</option>` + 
+        sel.innerHTML = `<option value="">Chọn môn học</option>` + 
           arr.map(s => {
             SUBJECT_NAME_BY_ID[Number(s.id)] = s.name || s.subjectName || ('Môn ' + s.id);
-            return `<option value="${s.id}">${s.code || ''} - ${s.name || ''} ${s.grade?('('+s.grade+')'):''}</option>`;
+            const code = s.code || '';
+            const name = s.name || s.subjectName || '';
+            const grade = s.grade ? `(${s.grade})` : '';
+            const displayText = code ? `${code} - ${name} ${grade}`.trim() : `${name} ${grade}`.trim();
+            return `<option value="${s.id}">${displayText}</option>`;
           }).join('');
+        sel.disabled = false;
       } catch (e) {
         sel.innerHTML = `<option value="">(Lỗi tải danh sách môn)</option>`;
+        sel.disabled = true;
         console.error(e);
       }
     }

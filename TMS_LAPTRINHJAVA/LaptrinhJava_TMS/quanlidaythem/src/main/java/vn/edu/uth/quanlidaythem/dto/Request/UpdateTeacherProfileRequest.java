@@ -2,11 +2,14 @@ package vn.edu.uth.quanlidaythem.dto.Request;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class UpdateTeacherProfileRequest {
     private String fullName;
     private String phone;
     private String mainSubject;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;      // yyyy-MM-dd
     private String degree;      // Cử nhân/ThS/TS...
     private Integer experience; // số năm

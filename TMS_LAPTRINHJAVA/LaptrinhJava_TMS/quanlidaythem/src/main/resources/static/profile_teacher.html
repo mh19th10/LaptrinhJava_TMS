@@ -110,9 +110,8 @@
   </div>
 
   <!-- Dùng helper chung -->
-  <script type="module">
-    import { requireLoginOrRedirect, requireRoleOrRedirect, wireLogout } from './assets/js/api.js';
-
+  <script src="assets/js/api.js"></script>
+  <script>
     const token = localStorage.getItem('jwtToken');
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -181,14 +180,14 @@
         statusEl().style.color = '#111';
 
         const body = {
-          fullName:    fullName().value.trim(),
+          fullName:    fullName().value.trim() || null,
           dob:         dob().value || null,           // yyyy-MM-dd
-          phone:       phone().value.trim(),
-          mainSubject: mainSubject().value.trim(),
-          degree:      degree().value.trim(),
+          phone:       phone().value.trim() || null,
+          mainSubject: mainSubject().value.trim() || null,
+          degree:      degree().value.trim() || null,
           experience:  experience().value ? Number(experience().value) : null,
-          address:     address().value.trim(),
-          bio:         bio().value.trim()
+          address:     address().value.trim() || null,
+          bio:         bio().value.trim() || null
         };
 
         try {
