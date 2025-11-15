@@ -1,4 +1,3 @@
-// vn.edu.uth.quanlidaythem.domain.TeacherSubjectPermission
 package vn.edu.uth.quanlidaythem.domain;
 
 import jakarta.persistence.Column;

@@ -30,6 +30,10 @@ public class User {
     @Column(length = 30)
     private String role; // ADMIN / TEACHER / STUDENT
 
+    @Column(length = 20)
+    private String status;   // ACTIVE / INACTIVE / BANNED
+
+
     // ====== Thông tin cơ bản ======
     @Column(length = 120)
     private String email;
@@ -116,4 +120,8 @@ public class User {
 
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
 }

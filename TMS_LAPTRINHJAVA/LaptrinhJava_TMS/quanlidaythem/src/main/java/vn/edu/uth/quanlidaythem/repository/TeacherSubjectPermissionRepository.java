@@ -11,15 +11,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import vn.edu.uth.quanlidaythem.domain.TeacherSubjectPermission;
 
-public interface TeacherSubjectPermissionRepository extends JpaRepository<TeacherSubjectPermission, Long> {
+public interface TeacherSubjectPermissionRepository
+        extends JpaRepository<TeacherSubjectPermission, Long> {
+
     List<TeacherSubjectPermission> findByTeacherId(Long teacherId);
     List<TeacherSubjectPermission> findByTeacherIdAndActiveTrue(Long teacherId);
+
     boolean existsByTeacherIdAndActiveTrue(Long teacherId);
     boolean existsByTeacherIdAndSubject_IdAndActiveTrue(Long teacherId, Long subjectId);
+
     Optional<TeacherSubjectPermission> findByTeacherIdAndSubject_IdAndActiveTrue(Long teacherId, Long subjectId);
 
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update TeacherSubjectPermission p set p.active = :active where p.teacherId = :teacherId")
+    @Query("UPDATE TeacherSubjectPermission p SET p.active = :active WHERE p.teacherId = :teacherId")
     int updateActiveByTeacherId(@Param("teacherId") Long teacherId, @Param("active") boolean active);
+
+    @Query("SELECT COUNT(DISTINCT p.teacherId) FROM TeacherSubjectPermission p WHERE p.active = false")
+    long countPendingTeachers();
 }

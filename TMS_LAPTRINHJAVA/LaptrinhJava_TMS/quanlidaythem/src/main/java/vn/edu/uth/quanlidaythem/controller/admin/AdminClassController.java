@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/admin/classes")
+@RequestMapping("/api/admin/class-management") // ✅ ĐỔI ENDPOINT
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminClassController {
 
-    // GET /api/admin/classes?status=&type=&subject=
+    // GET /api/admin/class-management?status=&type=&subject=
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> list(
             @RequestParam(required=false) String status,
@@ -31,32 +31,31 @@ public class AdminClassController {
         ));
     }
 
-    // GET /api/admin/classes/{id}
+    // GET /api/admin/class-management/{id}
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> detail(@PathVariable Long id) {
         return ResponseEntity.ok(Map.of("id",id,"name","Lớp #"+id,"status","PENDING"));
     }
 
-    // POST /api/admin/classes/{id}/approve
+    // POST /api/admin/class-management/{id}/approve
     @PostMapping("/{id}/approve")
     public ResponseEntity<Void> approve(@PathVariable Long id) {
         return ResponseEntity.ok().build();
     }
 
-    // POST /api/admin/classes/{id}/reject
+    // POST /api/admin/class-management/{id}/reject
     @PostMapping("/{id}/reject")
     public ResponseEntity<Void> reject(@PathVariable Long id, @RequestBody(required=false) ReasonDTO body) {
         return ResponseEntity.ok().build();
     }
 
-    // PUT /api/admin/classes/{id}
+    // PUT /api/admin/class-management/{id}
     @PutMapping("/{id}")
     public ResponseEntity<Void> update(@PathVariable Long id, @RequestBody Map<String, Object> classData) {
-        // TODO: classService.update(id, classData)
         return ResponseEntity.ok().build();
     }
 
-    // GET /api/admin/classes/{id}/students
+    // GET /api/admin/class-management/{id}/students
     @GetMapping("/{id}/students")
     public ResponseEntity<List<Map<String, Object>>> students(@PathVariable Long id) {
         return ResponseEntity.ok(List.of(
@@ -64,7 +63,7 @@ public class AdminClassController {
         ));
     }
 
-    // GET /api/admin/classes/search?q=...
+    // GET /api/admin/class-management/search?q=...
     @GetMapping("/search")
     public ResponseEntity<List<Map<String, Object>>> search(@RequestParam String q) {
         return ResponseEntity.ok(List.of(Map.of("id",777,"name","Lớp tìm thấy: "+q)));

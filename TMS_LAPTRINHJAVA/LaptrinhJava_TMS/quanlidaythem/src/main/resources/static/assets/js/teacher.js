@@ -1,32 +1,11 @@
-// assets/js/teacher.js
 document.addEventListener('DOMContentLoaded', initTeacherDashboard);
 
-// Nếu bạn CHƯA có requireRoleOrRedirect trong api.js, dùng hàm này
-function ensureRole(required) {
-  const role = (localStorage.getItem('userRole') || '').toUpperCase();
-  if (role !== required) {
-    alert('Bạn không có quyền truy cập trang này.');
-    // nếu là học sinh thì đẩy về dashboard học sinh, còn lại về login
-    location.href = role === 'STUDENT' ? 'dashboard_student.html' : 'login.html';
-    return false;
-  }
-  return true;
-}
-
 async function initTeacherDashboard() {
-  // requireLoginOrRedirect() đến từ assets/js/api.js của bạn
   if (!requireLoginOrRedirect()) return;
-
-  // nếu có sẵn requireRoleOrRedirect thì dùng; không thì fallback ensureRole
-  if (typeof requireRoleOrRedirect === 'function') {
-    if (!requireRoleOrRedirect('TEACHER')) return;
-  } else {
-    if (!ensureRole('TEACHER')) return;
-  }
-
+  if (!requireRoleOrRedirect('TEACHER')) return; 
   wireLogout();
 
-  // 1) Tải thông tin giáo viên
+  // 1️⃣ Lấy thông tin giáo viên
   try {
     const me = await fetchJSON('/api/teacher/info');
     const nameEl = document.getElementById('teacherName');
@@ -35,9 +14,9 @@ async function initTeacherDashboard() {
     return handleAuthError(e);
   }
 
-  // 2) Tải danh sách lớp giảng dạy
+  // 2️⃣ Lấy danh sách lớp giảng dạy
   try {
-    const classes = await fetchJSON('/api/teacher/classes'); // cần BE cung cấp
+    const classes = await fetchJSON('/api/teacher/classes');
     renderClassesTable(classes);
     setStatsFromClasses(classes);
   } catch (e) {
@@ -46,7 +25,7 @@ async function initTeacherDashboard() {
     if (tbody) {
       tbody.innerHTML = `
         <tr>
-          <td colspan="4" class="small-muted" style="color:#c00;text-align:center">
+          <td colspan="4" style="color:#c00;text-align:center">
             Không thể tải danh sách lớp.
           </td>
         </tr>`;
@@ -55,7 +34,6 @@ async function initTeacherDashboard() {
 }
 
 function handleAuthError(e) {
-  // Với api.js hiện tại bạn ném 'UNAUTHORIZED' cho 401/403
   const msg = (e && e.message) ? e.message.toUpperCase() : '';
   if (msg === 'UNAUTHORIZED' || msg === 'UNAUTH') {
     alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
@@ -72,7 +50,6 @@ function handleAuthError(e) {
 function renderClassesTable(classes = []) {
   const tbody = document.getElementById('classesTbody');
   if (!tbody) return;
-
   tbody.innerHTML = '';
 
   if (!Array.isArray(classes) || classes.length === 0) {
@@ -88,37 +65,43 @@ function renderClassesTable(classes = []) {
   for (const c of classes) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${c?.name ?? '--'}</td>
-      <td>${c?.schedule ?? '--'}</td>
-      <td>${c?.studentCount ?? '--'}</td>
+      <td>${c.className ?? '--'}</td>
+      <td>${formatSchedule(c.schedules)}</td>
+      <td>${c.studentCount ?? (c.students?.length ?? '--')}</td>
       <td>
-        <button class="btn small" data-id="${c?.id ?? ''}" data-action="detail">Chi tiết</button>
+        <button class="btn small" data-id="${c.id ?? ''}" data-action="detail">Chi tiết</button>
       </td>`;
     tbody.appendChild(tr);
   }
 
-  // Demo click "Chi tiết"
+  // Xử lý sự kiện click “Chi tiết”
   tbody.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action="detail"]');
     if (!btn) return;
     const id = btn.getAttribute('data-id');
     alert('Mở chi tiết lớp ' + (id || ''));
-    // location.href = `class_detail_teacher.html?id=${id}`; // nếu có trang chi tiết
+    // location.href = `class_detail_teacher.html?id=${id}`; // tuỳ chọn thêm
   }, { once: true });
 }
 
+// Hàm định dạng lịch dạy
+function formatSchedule(schedules = []) {
+  if (!Array.isArray(schedules) || schedules.length === 0) return '--';
+  return schedules.map(s => `${s.dayOfWeek} (${s.startTime} - ${s.endTime})`).join('<br>');
+}
+
 function setStatsFromClasses(classes = []) {
-  const active   = Array.isArray(classes) ? classes.length : 0;
-  const students = classes.reduce((s, c) => s + (Number(c?.studentCount) || 0), 0);
-  const first    = classes[0];
+  const active = Array.isArray(classes) ? classes.length : 0;
+  const students = classes.reduce((s, c) => s + (Number(c?.studentCount) || (c.students?.length ?? 0)), 0);
+  const first = classes[0];
 
-  const elActive     = document.getElementById('statActiveClasses');
-  const elStudents   = document.getElementById('statStudents');
-  const elNextTime   = document.getElementById('statNextSession');
-  const elNextName   = document.getElementById('statNextClassName');
+  const elActive = document.getElementById('statActiveClasses');
+  const elStudents = document.getElementById('statStudents');
+  const elNextTime = document.getElementById('statNextSession');
+  const elNextName = document.getElementById('statNextClassName');
 
-  if (elActive)   elActive.textContent   = String(active);
+  if (elActive) elActive.textContent = String(active);
   if (elStudents) elStudents.textContent = String(students);
-  if (elNextTime) elNextTime.textContent = first?.nextTime || first?.schedule || '--';
-  if (elNextName) elNextName.textContent = first?.nextClassName || first?.name || '--';
+  if (elNextTime) elNextTime.textContent = first?.schedules?.[0]?.startTime || '--';
+  if (elNextName) elNextName.textContent = first?.className || '--';
 }

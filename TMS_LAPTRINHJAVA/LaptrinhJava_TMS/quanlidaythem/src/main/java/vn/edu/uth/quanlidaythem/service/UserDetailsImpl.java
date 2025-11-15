@@ -15,6 +15,7 @@ public class UserDetailsImpl implements UserDetails {
     private final String password;
     private final String role;
     private final String fullName;
+    private String email;
 
     public UserDetailsImpl(Long id, String username, String fullName, String password, String role) {
         this.id = id;
@@ -37,7 +38,9 @@ public class UserDetailsImpl implements UserDetails {
     public Long getId() { return id; }
     public String getRole() { return role; }
     public String getFullName() { return fullName; }
-    
+    public String getEmail() { return email; }
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         String authorityString = "ROLE_" + role;
