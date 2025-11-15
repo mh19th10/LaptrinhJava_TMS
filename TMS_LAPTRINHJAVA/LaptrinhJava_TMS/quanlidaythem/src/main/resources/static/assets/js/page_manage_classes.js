@@ -1,6 +1,6 @@
 // page_manage_classes.js
 // ======================================
-// PAGE: MANAGE CLASSES (KEEP OLD + FIXES)
+// PAGE: MANAGE CLASSES (FIXED VERSION)
 // ======================================
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,14 +9,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     RBAC.applyRoleBasedUI();
 
     await loadStats();
-    await loadClasses(); // initial load
+    await loadClasses();
 
-    // wire search enter
     document.getElementById("searchInput").addEventListener("keydown", (e) => {
         if (e.key === "Enter") searchClasses();
     });
 
-    // wire filters to reload
     document.getElementById("statusFilter").addEventListener("change", loadClasses);
     document.getElementById("typeFilter").addEventListener("change", loadClasses);
     document.getElementById("subjectFilter").addEventListener("change", loadClasses);
@@ -24,7 +22,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 // ====================== HELPERS ======================
 function getAuthHeadersLocal() {
-    // tms-api.js exports getAuthHeaders in global scope; fallback to manual
     if (typeof getAuthHeaders === "function") return getAuthHeaders();
     const token = localStorage.getItem("authToken");
     return {
@@ -34,7 +31,7 @@ function getAuthHeadersLocal() {
 }
 
 function escapeHtml(s) {
-    if (s === undefined || s === null) return "";
+    if (s == null) return "";
     return String(s)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -58,7 +55,6 @@ function subjectLabel(s) {
 }
 
 function getStatusText(s) {
-    if (!s) return "Chờ duyệt";
     const map = {
         pending: "Chờ duyệt",
         approved: "Đã duyệt",
@@ -66,7 +62,7 @@ function getStatusText(s) {
         rejected: "Từ chối",
         completed: "Hoàn thành"
     };
-    return map[String(s).toLowerCase()] || String(s);
+    return map[(s || "").toLowerCase()] || "Chờ duyệt";
 }
 
 function vietnameseDay(day) {
@@ -79,354 +75,296 @@ function vietnameseDay(day) {
         SATURDAY: "Thứ Bảy",
         SUNDAY: "Chủ Nhật"
     };
-    return map[day] || day || "-";
+    return map[day] || day;
 }
 
 // ====================== STATS ======================
 async function loadStats() {
     try {
         const res = await fetch("/api/admin/stats/classes-by-status", {
-            method: "GET",
             headers: getAuthHeadersLocal()
         });
         const stats = await res.json();
-        document.getElementById("statPending").textContent   = stats?.pending ?? 0;
-        document.getElementById("statApproved").textContent  = stats?.approved ?? 0;
-        document.getElementById("statActive").textContent    = stats?.active ?? 0;
-        // backend may not provide completed; keep safe
+
+        document.getElementById("statPending").textContent = stats?.pending ?? 0;
+        document.getElementById("statApproved").textContent = stats?.approved ?? 0;
+        document.getElementById("statActive").textContent = stats?.active ?? 0;
         document.getElementById("statCompleted").textContent = stats?.completed ?? 0;
+
     } catch (err) {
-        console.error("❌ Lỗi loadStats:", err);
-        // leave UI as-is
+        console.error("❌ loadStats error:", err);
     }
 }
 
 // ====================== LOAD CLASSES ======================
-// This function reads filters from DOM and calls backend with query params when possible.
-// If TMS_API.Classes.getAllAdmin exists, it is used (it returns pageable object with .content)
 async function loadClasses() {
     const tbody = document.getElementById("classesTableBody");
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">Đang tải dữ liệu...</td></tr>`;
 
     try {
-        // collect filters
-        const status = document.getElementById("statusFilter")?.value || "";
-        const type   = document.getElementById("typeFilter")?.value || "";
-        const subject= document.getElementById("subjectFilter")?.value || "";
-        const q      = document.getElementById("searchInput")?.value?.trim() || "";
-
-        // Prefer backend filtered call if available:
-        let payload;
-        // If TMS_API.Classes.getAllAdmin accepts only page/size we fallback to direct fetch with params
-        // Use direct fetch to /api/admin/classes so we can pass status/type
-        const params = new URLSearchParams();
-        params.set("page", "0");
-        params.set("size", "999");
-        if (status) params.set("status", status);
-        if (type) params.set("type", type);
-
-        const url = "/api/admin/classes?" + params.toString();
+        const url = "/api/classes";
         const res = await fetch(url, { headers: getAuthHeadersLocal() });
         const body = await res.json();
 
-        // body might be Page<ClassDTO> => content array OR plain array
-        let list = Array.isArray(body) ? body : (Array.isArray(body?.content) ? body.content : []);
-        // map keys: backend returns camelCase already (via DTOMapper), so ok
+        let list = Array.isArray(body) ? body : (body?.content ?? []);
 
-        // client-side subject filter: backend uses subject param but if not provided apply client filter
-        if (subject) {
-            list = list.filter(c => {
-                // subject from backend might be 'math' etc
-                return String(c.subject || "").toLowerCase() === subject.toLowerCase();
-            });
-        }
+        const status = document.getElementById("statusFilter")?.value?.trim();
+        const type = document.getElementById("typeFilter")?.value?.trim();
+        const subject = document.getElementById("subjectFilter")?.value?.trim();
+        const q = document.getElementById("searchInput")?.value?.trim().toLowerCase();
 
-        // client-side search q
+        if (status) list = list.filter(c => c.status?.toLowerCase() === status.toLowerCase());
+        if (type) list = list.filter(c => c.type === type);
+        if (subject) list = list.filter(c => c.subject?.toLowerCase() === subject.toLowerCase());
+
         if (q) {
-            const qlow = q.toLowerCase();
             list = list.filter(c => {
-                const any = [
-                    c.className,
-                    c.subject,
-                    c.teacher?.fullName,
-                    c.teacher?.email,
-                    c.teacher?.username
-                ].filter(Boolean).join(" ").toLowerCase();
-                return any.includes(qlow);
+                const text = `${c.className} ${c.subject} ${c.teacher?.fullName}`.toLowerCase();
+                return text.includes(q);
             });
         }
 
-        // update stats counts if needed (optional, but keep top stats in sync)
-        // we can compute quick summary client-side
-        const counts = { pending:0, approved:0, active:0, completed:0, rejected:0 };
-        list.forEach(c => {
-            const s = String(c.status || "pending").toLowerCase();
-            if (counts[s] !== undefined) counts[s]++; else { /* ignore */ }
-        });
-        // If you want to override stat cards with these counts, uncomment:
-        // document.getElementById("statPending").textContent = counts.pending;
-        // document.getElementById("statApproved").textContent = counts.approved;
-        // document.getElementById("statActive").textContent = counts.active;
-        // document.getElementById("statCompleted").textContent = counts.completed;
-
-        if (!list || list.length === 0) {
+        if (!list.length) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">Không có lớp học nào</td></tr>`;
             return;
         }
 
-        // build rows
-        tbody.innerHTML = list.map(c => {
-            const teacherName = c.teacher?.fullName || "Chưa phân công";
-            const scheduleCount = Array.isArray(c.schedules) ? c.schedules.length : (c.schedulesCount ?? 0);
-            const studentCount = (c.studentCount ?? (Array.isArray(c.students) ? c.students.length : 0));
-            const statusText = getStatusText(c.status);
-            const safeName = escapeHtml(c.className);
-            const safeTeacher = escapeHtml(teacherName);
-            const safeSubject = escapeHtml(subjectLabel(c.subject));
-            const actions = (String(c.status || "pending").toLowerCase() === "pending")
-                ? `<button class="btn btn-success" onclick="approveClass(${c.id})">Duyệt</button>
-                   <button class="btn btn-danger" onclick="rejectClass(${c.id})">Từ chối</button>`
-                : `<button class="btn btn-info" onclick="viewSchedule(${c.id})">Xem lịch</button>`;
-
-            return `<tr>
-                <td>${safeName}</td>
-                <td>${safeTeacher}</td>
-                <td>${safeSubject}</td>
+        tbody.innerHTML = list.map(c => `
+            <tr>
+                <td>${escapeHtml(c.className)}</td>
+                <td>${escapeHtml(c.teacher?.fullName || "Chưa phân công")}</td>
+                <td>${escapeHtml(subjectLabel(c.subject))}</td>
                 <td>${c.type === "in-school" ? "Trong trường" : "Ngoài trường"}</td>
-                <td>${studentCount}</td>
-                <td>${scheduleCount}</td>
-                <td>${statusText}</td>
-                <td>${actions}</td>
-            </tr>`;
-        }).join("");
+                <td>${c.studentCount ?? (c.students?.length ?? 0)}</td>
+                <td>${c.schedules?.length ?? 0}</td>
+                <td>${getStatusText(c.status)}</td>
+                <td>
+                    ${
+                        c.status === "pending"
+                        ? `<button class="btn btn-success" onclick="approveClass(${c.id})">Duyệt</button>
+                           <button class="btn btn-danger" onclick="rejectClass(${c.id})">Từ chối</button>`
+                        : `<button class="btn btn-info" onclick="viewSchedule(${c.id})">Xem lịch</button>`
+                    }
+                </td>
+            </tr>
+        `).join("");
 
     } catch (err) {
-        console.error("❌ Load classes error:", err);
-        document.getElementById("classesTableBody").innerHTML =
-            `<tr><td colspan="8" style="text-align:center;color:red">Lỗi tải dữ liệu</td></tr>`;
+        console.error("❌ loadClasses error:", err);
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red">Lỗi tải dữ liệu</td></tr>`;
     }
 }
 
-// helper wrapper for filters (keeps same name as html onchange)
-function loadClassesData() {
-    loadClasses();
-}
-
-// ====================== SEARCH ======================
 function searchClasses() {
     loadClasses();
 }
 
-// ====================== APPROVE (OPEN SCHEDULE MODAL) ======================
+// ====================== APPROVE CLASS ======================
 window.approveClass = async function (id) {
     try {
-        // Get class detail (admin endpoint)
-        const res = await fetch(`/api/admin/classes/${id}`, {
+        const res = await fetch(`/api/classes/${id}`, {
             headers: getAuthHeadersLocal()
         });
         const classData = await res.json();
 
-        // Fill schedule modal (createScheduleModal) with class info
         window.currentClassId = id;
-        document.getElementById("scheduleClassName").textContent = classData.className || "-";
+
+        document.getElementById("scheduleClassName").textContent = classData.className;
         document.getElementById("scheduleSubject").textContent = subjectLabel(classData.subject);
         document.getElementById("scheduleTeacher").textContent = classData.teacher?.fullName || "Chưa phân công";
 
-        // load schedules for this class
         await loadSchedulesForClass(id);
 
         openScheduleModal();
+
     } catch (err) {
         console.error("❌ approveClass error:", err);
-        alert("Không thể mở modal duyệt lớp: " + (err.message || err));
+        alert("Không thể mở modal duyệt lớp");
     }
 };
 
 // ====================== VIEW SCHEDULE ======================
 window.viewSchedule = async function (id) {
     try {
-        window.currentClassId = id;
-        const res = await fetch(`/api/admin/classes/${id}`, {
+        const res = await fetch(`/api/classes/${id}`, {
             headers: getAuthHeadersLocal()
         });
         const classData = await res.json();
 
-        document.getElementById("viewClassName").textContent = classData.className || "-";
+        window.currentClassId = id;
+
+        document.getElementById("viewClassName").textContent = classData.className;
         document.getElementById("viewClassSubject").textContent = subjectLabel(classData.subject);
         document.getElementById("viewClassTeacher").textContent = classData.teacher?.fullName || "Chưa phân công";
 
-        // populate viewSchedules area
         const box = document.getElementById("viewSchedules");
-        box.innerHTML = `<div class="empty-state">Đang tải...</div>`;
-
-        // schedules are returned inside classData.schedules
-        const schedules = Array.isArray(classData.schedules) ? classData.schedules : [];
+        const schedules = classData.schedules ?? [];
 
         if (!schedules.length) {
             box.innerHTML = `<div class="empty-state">Chưa có lịch học</div>`;
         } else {
             box.innerHTML = schedules.map(s => `
                 <div class="schedule-item">
-                    <div class="schedule-info">
-                        <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
-                        <div class="schedule-time">${escapeHtml(s.startTime)} - ${escapeHtml(s.endTime)}</div>
-                    </div>
+                    <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
+                    <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
                 </div>
             `).join("");
         }
 
-        // open modal
         document.getElementById("viewScheduleModal").style.display = "flex";
+
     } catch (err) {
         console.error("❌ viewSchedule error:", err);
-        alert("Không thể tải lịch học: " + (err.message || err));
+        alert("Lỗi tải lịch");
     }
 };
 
-// ====================== LOAD SCHEDULES FOR MODAL (createScheduleModal) ======================
+// ====================== LOAD SCHEDULES FOR MODAL ======================
 async function loadSchedulesForClass(classId) {
     const box = document.getElementById("addedSchedules");
     box.innerHTML = `<div class="empty-state">Đang tải...</div>`;
 
     try {
-        // Use admin class endpoint which contains schedules array
-        const res = await fetch(`/api/admin/classes/${classId}`, {
+        const res = await fetch(`/api/classes/${classId}`, {
             headers: getAuthHeadersLocal()
         });
+
         const classData = await res.json();
-        const schedules = Array.isArray(classData.schedules) ? classData.schedules : [];
+        const schedules = classData.schedules ?? [];
 
         if (!schedules.length) {
-            box.innerHTML = `<div class="empty-state">Chưa có lịch học nào được thêm</div>`;
-            document.getElementById("saveAllBtn").disabled = false; // allow saving (approve) even with 0? keep enabled per your flow; you can toggle
+            box.innerHTML = `<div class="empty-state">Chưa có lịch học nào</div>`;
             return;
         }
 
         box.innerHTML = schedules.map(s => `
             <div class="schedule-item">
-                <div class="schedule-info">
-                    <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
-                    <div class="schedule-time">${escapeHtml(s.startTime)} - ${escapeHtml(s.endTime)}</div>
-                </div>
+                <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
+                <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
             </div>
         `).join("");
+
+        // 🔥 Bật nút lưu lịch học
         document.getElementById("saveAllBtn").disabled = false;
-    } catch (e) {
-        console.error("Lỗi tải schedules:", e);
-        box.innerHTML = `<div class="empty-state" style="color:red">Lỗi tải dữ liệu</div>`;
+
+    } catch (err) {
+        console.error("❌ loadSchedules error:", err);
     }
 }
 
-// ====================== REJECT ======================
+
+// ====================== REJECT CLASS ======================
 window.rejectClass = async function (id) {
     const reason = prompt("Nhập lý do từ chối:");
-    if (reason === null) return; // user cancelled (allow empty string? your backend saves "Không có lý do" if blank)
+    if (reason == null) return;
+
     try {
         await TMS_API.Classes.rejectAdmin(id, reason);
         alert("Đã từ chối!");
-        await loadStats();
-        await loadClasses();
+        loadClasses();
     } catch (err) {
-        console.error("❌ rejectClass error:", err);
-        alert("Lỗi từ chối: " + (err.body?.message || err.message || err));
+        alert("Lỗi từ chối");
     }
 };
 
-// ====================== CREATE CLASS (FORM) ======================
+// ====================== CREATE CLASS ======================
 const createClassForm = document.getElementById("createClassForm");
 if (createClassForm) {
     createClassForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         const payload = {
             className: document.getElementById("className").value,
             subject: document.getElementById("classSubject").value,
             type: document.querySelector("input[name='type']:checked")?.value,
             description: document.getElementById("classDescription").value
         };
+
         try {
             const created = await TMS_API.Classes.create(payload);
             alert("Tạo lớp thành công!");
             closeModal("createClassModal");
 
-            // refresh
-            await loadStats();
             await loadClasses();
 
-            // open schedule modal for newly created
-            if (created?.data) {
-                // TMS_API may return wrapped response { success, data } or direct object
-                window.currentClassId = created.data.id ?? created.id;
-            } else {
-                window.currentClassId = created.id;
-            }
+            const classObj = created.data ?? created; // Tự động lấy đúng format
 
-            // prefill schedule modal
-            document.getElementById("scheduleClassName").textContent = created.className ?? (created.data?.className ?? "-");
-            document.getElementById("scheduleSubject").textContent = subjectLabel(created.subject ?? created.data?.subject);
-            document.getElementById("scheduleTeacher").textContent = "Chưa phân công";
+            window.currentClassId = classObj.id;
+
+            document.getElementById("scheduleClassName").textContent = classObj.className;
+            document.getElementById("scheduleSubject").textContent = subjectLabel(classObj.subject);
+            document.getElementById("scheduleTeacher").textContent = classObj.teacher?.fullName || "Chưa phân công";
+
 
             await loadSchedulesForClass(window.currentClassId);
             openScheduleModal();
 
         } catch (err) {
             console.error("❌ create class error:", err);
-            alert("Lỗi tạo lớp: " + (err.body?.message || err.message || err));
+            alert("Lỗi tạo lớp");
         }
     });
 }
 
-// ====================== ADD NEW SCHEDULE (FORM) ======================
+// ====================== CREATE SCHEDULE ======================
 const createScheduleForm = document.getElementById("createScheduleForm");
 if (createScheduleForm) {
     createScheduleForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+
         if (!window.currentClassId) {
-            alert("Không có class id hiện tại.");
+            alert("Lỗi: không có classId");
             return;
         }
+
         const payload = {
             dayOfWeek: document.getElementById("dayOfWeek").value,
             startTime: document.getElementById("startTime").value,
             endTime: document.getElementById("endTime").value
         };
+
         try {
             const res = await fetch(`/api/classes/${window.currentClassId}/schedule`, {
                 method: "POST",
                 headers: getAuthHeadersLocal(),
                 body: JSON.stringify(payload)
             });
-            if (!res.ok) {
-                const txt = await res.text();
-                throw new Error(txt || "Lỗi tạo lịch");
-            }
+
+            if (!res.ok) throw new Error("Lỗi tạo lịch");
+
             await loadSchedulesForClass(window.currentClassId);
+
         } catch (err) {
             console.error("❌ create schedule error:", err);
-            alert("Lỗi tạo lịch học: " + (err.message || err));
+            alert("Lỗi tạo lịch");
         }
     });
 }
 
-// ====================== SAVE ALL SCHEDULES (APPROVE CLASS) ======================
+// ====================== APPROVE CLASS FINAL ======================
 window.saveAllSchedules = async function () {
     try {
-        if (!window.currentClassId) {
-            alert("Không có lớp để duyệt.");
-            return;
-        }
         await TMS_API.Classes.approveAdmin(window.currentClassId);
-        alert("🎉 Lớp đã được duyệt!");
+        alert("Lớp đã được duyệt!");
         closeModal("createScheduleModal");
-        await loadStats();
-        await loadClasses();
+        loadClasses();
     } catch (err) {
-        console.error("❌ saveAllSchedules error:", err);
-        alert("Không thể duyệt lớp: " + (err.body?.message || err.message || err));
+        alert("Lỗi duyệt lớp");
     }
 };
 
-// small utility closeModal used in HTML
 function closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
 }
+
+window.openCreateClassModal = function () {
+    const modal = document.getElementById("createClassModal");
+    if (modal) modal.style.display = "flex";
+};
+
+window.openScheduleModal = function() {
+    const modal = document.getElementById("createScheduleModal");
+    if (modal) modal.style.display = "flex";
+};
+
