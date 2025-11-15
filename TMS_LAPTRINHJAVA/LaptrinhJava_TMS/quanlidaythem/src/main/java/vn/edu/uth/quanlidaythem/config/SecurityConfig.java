@@ -1,11 +1,10 @@
 package vn.edu.uth.quanlidaythem.config;
 
 import java.util.Arrays;
+import java.util.List;
 
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -18,10 +17,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
@@ -46,6 +46,7 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setHideUserNotFoundExceptions(false);
         return authProvider;
     }
 
@@ -61,29 +62,84 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // ======================= STATELESS =======================
+            .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // ======================= JSON ERROR =======================
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((req, res, ex2) -> {
+                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"" + ex2.getMessage() + "\"}");
+                })
+                .accessDeniedHandler((req, res, ex3) -> {
+                    res.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.getWriter().write("{\"error\":\"forbidden\",\"message\":\"" + ex3.getMessage() + "\"}");
+                })
+            )
+
+            // ======================= MAIN AUTH RULES =======================
             .authorizeHttpRequests(auth -> auth
-                // static
-                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                .requestMatchers("/assets/**", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/index.html", "/login.html", "/error").permitAll()
-                .requestMatchers(new AntPathRequestMatcher("/**/*.html")).permitAll()
 
-                // auth
+                // ---------- PUBLIC HTML ----------
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/login.html",
+                    "/register.html",
+
+                    // ADMIN PAGES
+                    "/dashboard_admin.html",
+                    "/reports_admin.html",
+                    "/settings_admin.html",
+                    "/manage_*.html",
+
+                    // TEACHER PAGES
+                    "/dashboard_teacher.html",
+                    "/register-class_teacher.html",
+                    "/register-subject_teacher.html",
+                    "/report_teacher.html",
+                    "/profile_teacher.html",
+
+                    // STUDENT PAGES
+                    "/dashboard_student.html",
+                    "/classes_student.html",
+                    "/tuition_student.html",
+                    "/profile_student.html",
+
+                    "/favicon.ico",
+                    "/error"
+                ).permitAll()
+
+                // ---------- STATIC RESOURCES ----------
+                .requestMatchers(
+                    "/static/**",
+                    "/css/**",
+                    "/js/**",
+                    "/images/**",
+                    "/assets/**",
+                    "/webjars/**"
+                ).permitAll()
+
+                // ---------- PUBLIC API ----------
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/public/**").permitAll()
 
-                // catalog: cho TEACHER/ADMIN được xem danh sách môn
-                .requestMatchers(HttpMethod.GET, "/api/subjects", "/api/subjects/**")
-                    .hasAnyRole("TEACHER","ADMIN")
-
-                // các nhóm API theo role
-                .requestMatchers("/api/student/**").hasRole("STUDENT")
-                .requestMatchers("/api/teacher/**").hasRole("TEACHER")
+                // ---------- ROLE-BASED API ----------
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/teacher/**").hasRole("TEACHER")
+                .requestMatchers("/api/student/**").hasRole("STUDENT")
 
+                // ---------- KEEP OLD FEATURE ----------
+                .requestMatchers("/api/**").authenticated()
+
+                // ---------- EVERYTHING ELSE ----------
                 .anyRequest().authenticated()
             );
 
@@ -93,16 +149,29 @@ public class SecurityConfig {
         return http.build();
     }
 
+    // ======================= CORS CONFIG =======================
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
+
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "https://localhost:*",
+            "https://127.0.0.1:*"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
+
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false);
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

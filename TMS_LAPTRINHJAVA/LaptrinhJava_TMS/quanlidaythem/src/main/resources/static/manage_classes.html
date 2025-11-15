@@ -139,23 +139,36 @@
 
     .search-box {
       position: relative;
+      display: flex;
+      gap: 8px;
     }
 
     .search-box input {
-      padding: 10px 36px 10px 12px;
+      padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.9);
-      width: 280px;
+      width: 200px;
       font-size: 0.9rem;
     }
 
-    .search-box::after {
-      content: '🔍';
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+    .search-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary-600);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-btn:hover {
+      background: #0066dd;
+      transform: translateY(-2px);
     }
 
     .filter-select {
@@ -262,7 +275,6 @@
     .btn-primary:hover {
       background: #0066dd;
       transform: translateY(-2px);
-      box-shadow: var(--shadow-1);
     }
 
     .btn-success {
@@ -334,38 +346,35 @@
       color: #3730a3;
     }
 
-    .badge-cancelled {
+    .badge-rejected {
       background: #fee2e2;
       color: #991b1b;
     }
 
-    /* Modal */
+    /* Modal Styles */
     .modal {
-      display: none;
       position: fixed;
-      top: 0;
+      z-index: 1000;
       left: 0;
+      top: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 1000;
+      background-color: rgba(0,0,0,0.5);
+      display: none;
       justify-content: center;
       align-items: center;
     }
 
-    .modal.show {
-      display: flex;
-    }
-
     .modal-content {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 700px;
-      width: 90%;
-      max-height: 80vh;
+      background-color: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 500px;
+      max-width: 90%;
+      max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      position: relative;
     }
 
     .modal-header {
@@ -373,61 +382,230 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid rgba(15,23,42,0.06);
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 15px;
     }
 
-    .modal-close {
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
+
+    .close {
+      color: #64748b;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
       background: none;
       border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--muted);
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    .modal-close:hover {
+    .close:hover {
+      color: #475569;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #0077FF;
+      box-shadow: 0 0 0 3px rgba(0, 119, 255, 0.1);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin-top: 5px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+      margin: 0;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .required::after {
+      content: " *";
       color: #ef4444;
     }
 
-    .info-grid {
+    .form-help {
+      font-size: 0.8rem;
+      color: #6b7280;
+      margin-top: 5px;
+    }
+
+    .compliance-note {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #0369a1;
+    }
+
+    .compliance-note h4 {
+      margin: 0 0 5px 0;
+      font-size: 0.9rem;
+      color: #075985;
+    }
+
+    .compliance-list {
+      margin: 8px 0 0 0;
+      padding-left: 20px;
+    }
+
+    .compliance-list li {
+      margin-bottom: 3px;
+    }
+
+    .class-info {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .class-info h4 {
+      margin: 0 0 10px 0;
+      color: #1e293b;
+      font-size: 1rem;
+    }
+
+    .class-details {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
+      gap: 10px;
     }
 
-    .info-item {
+    .detail-item {
       display: flex;
       flex-direction: column;
-      gap: 4px;
     }
 
-    .info-label {
-      font-size: 0.85rem;
-      color: var(--muted);
+    .detail-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+
+    .detail-value {
       font-weight: 600;
+      color: #1e293b;
     }
 
-    .info-value {
-      font-size: 0.95rem;
-      color: #0f172a;
+    .schedule-list {
+      margin-top: 20px;
     }
 
-    .student-list {
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid rgba(15,23,42,0.1);
-      border-radius: 8px;
+    .schedule-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
       padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .student-item {
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(15,23,42,0.06);
+    .schedule-info {
+      flex: 1;
     }
 
-    .student-item:last-child {
-      border-bottom: none;
+    .schedule-day {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    .schedule-time {
+      color: #64748b;
+      font-size: 0.85rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #64748b;
+      padding: 30px;
+      font-style: italic;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .pagination-btn {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: #f3f4f6;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-info {
+      font-size: 0.9rem;
+      color: #6b7280;
     }
 
     @media (max-width: 1100px) {
@@ -445,15 +623,22 @@
       .stats-row {
         grid-template-columns: 1fr;
       }
-      .filter-bar {
-        flex-direction: column;
+      .search-box {
         width: 100%;
       }
       .search-box input {
-        width: 100%;
+        flex: 1;
       }
-      .info-grid {
-        grid-template-columns: 1fr;
+      .modal-content {
+        width: 95%;
+        padding: 20px;
+      }
+      .radio-group {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .btn-group {
+        flex-wrap: wrap;
       }
     }
   </style>
@@ -470,12 +655,12 @@
       </div>
 
       <nav class="nav">
-        <a href="dashboard_admin.html">🏠 Trang chủ</a>
-        <a href="manage_teachers.html">👨‍🏫 Quản lý giáo viên</a>
-        <a href="manage_classes.html" class="active">📚 Quản lý lớp học</a>
-        <a href="manage_fees.html">💰 Quản lý học phí</a>
-        <a href="reports_admin.html">📊 Báo cáo & Thống kê</a>
-        <a href="settings_admin.html">⚙️ Cài đặt</a>
+        <a href="dashboard_admin.html" data-permission="dashboard:view">🏠 Trang chủ</a>
+        <a href="manage_teachers.html" data-permission="teachers:view">👨‍🏫 Quản lý giáo viên</a>
+        <a href="manage_classes.html" class="active" data-permission="classes:view">📚 Quản lý lớp học</a>
+        <a href="manage_fees.html" data-permission="fees:view">💰 Quản lý học phí</a>
+        <a href="reports_admin.html" data-permission="reports:view">📊 Báo cáo & Thống kê</a>
+        <a href="settings_admin.html" data-permission="settings:view">⚙️ Cài đặt</a>
         <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
       </nav>
     </aside>
@@ -486,25 +671,28 @@
           <div class="h1">📚 Quản lý Lớp học</div>
           <div class="small-muted">Giám sát và phê duyệt các lớp dạy thêm</div>
         </div>
+        <div>
+          <button class="btn btn-primary" onclick="openCreateClassModal()">+ Tạo lớp mới</button>
+        </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-row">
+      <!-- Stats - Chỉ Admin thấy -->
+      <div class="stats-row" data-role-show="ADMIN">
         <div class="stat-card">
           <div class="small-muted">⏳ Chờ duyệt</div>
-          <div class="num" id="statPending">8</div>
+          <div class="num" id="statPending">0</div>
         </div>
         <div class="stat-card">
           <div class="small-muted">✅ Đã duyệt</div>
-          <div class="num" id="statApproved">24</div>
+          <div class="num" id="statApproved">0</div>
         </div>
         <div class="stat-card">
           <div class="small-muted">🎓 Đang học</div>
-          <div class="num" id="statActive">18</div>
+          <div class="num" id="statActive">0</div>
         </div>
         <div class="stat-card">
           <div class="small-muted">✓ Hoàn thành</div>
-          <div class="num" id="statCompleted">45</div>
+          <div class="num" id="statCompleted">0</div>
         </div>
       </div>
 
@@ -513,25 +701,34 @@
         <div class="filter-bar">
           <div class="search-box">
             <input type="text" id="searchInput" placeholder="Tìm kiếm lớp học...">
+            <button class="search-btn" onclick="searchClasses()">
+              <span>🔍</span>
+              <span>Tìm</span>
+            </button>
           </div>
-          <select class="filter-select" id="statusFilter">
+          <select class="filter-select" id="statusFilter" onchange="loadClassesData()">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ duyệt</option>
             <option value="approved">Đã duyệt</option>
             <option value="active">Đang học</option>
             <option value="completed">Hoàn thành</option>
+            <option value="rejected">Từ chối</option>
           </select>
-          <select class="filter-select" id="typeFilter">
+          <select class="filter-select" id="typeFilter" onchange="loadClassesData()">
             <option value="">Tất cả loại hình</option>
             <option value="in-school">Trong trường</option>
             <option value="out-school">Ngoài trường</option>
           </select>
-          <select class="filter-select" id="subjectFilter">
+          <select class="filter-select" id="subjectFilter" onchange="loadClassesData()">
             <option value="">Tất cả môn học</option>
             <option value="math">Toán học</option>
             <option value="physics">Vật lý</option>
             <option value="chemistry">Hóa học</option>
             <option value="english">Tiếng Anh</option>
+            <option value="biology">Sinh học</option>
+            <option value="literature">Ngữ văn</option>
+            <option value="history">Lịch sử</option>
+            <option value="geography">Địa lý</option>
           </select>
         </div>
       </div>
@@ -554,254 +751,297 @@
           </thead>
           <tbody id="classesTableBody">
             <tr>
-              <td>Toán 12 - Luyện thi THPT</td>
-              <td>Nguyễn Văn A</td>
-              <td>Toán học</td>
-              <td>Ngoài trường</td>
-              <td>25/30</td>
-              <td>T2, T4, T6 - 18:00</td>
-              <td><span class="badge badge-pending">Chờ duyệt</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(1)">👁️</button>
-                  <button class="btn btn-success" onclick="approveClass(1)">✓</button>
-                  <button class="btn btn-danger" onclick="rejectClass(1)">✗</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Vật lý 11 - Bồi dưỡng</td>
-              <td>Trần Thị B</td>
-              <td>Vật lý</td>
-              <td>Trong trường</td>
-              <td>15/20</td>
-              <td>T3, T5 - 15:30</td>
-              <td><span class="badge badge-active">Đang học</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(2)">👁️</button>
-                  <button class="btn btn-warning" onclick="editClass(2)">✏️</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Hóa 10 - Học sinh giỏi</td>
-              <td>Lê Văn C</td>
-              <td>Hóa học</td>
-              <td>Trong trường</td>
-              <td>12/15</td>
-              <td>T2, T4 - 16:00</td>
-              <td><span class="badge badge-approved">Đã duyệt</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(3)">👁️</button>
-                  <button class="btn btn-warning" onclick="editClass(3)">✏️</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Tiếng Anh IELTS 6.0</td>
-              <td>Phạm Thị D</td>
-              <td>Tiếng Anh</td>
-              <td>Ngoài trường</td>
-              <td>18/20</td>
-              <td>T7, CN - 09:00</td>
-              <td><span class="badge badge-active">Đang học</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(4)">👁️</button>
-                  <button class="btn btn-warning" onclick="editClass(4)">✏️</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Ngữ văn 12 - Thi THPT</td>
-              <td>Hoàng Văn E</td>
-              <td>Ngữ văn</td>
-              <td>Ngoài trường</td>
-              <td>22/25</td>
-              <td>T3, T5, T7 - 17:30</td>
-              <td><span class="badge badge-pending">Chờ duyệt</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(5)">👁️</button>
-                  <button class="btn btn-success" onclick="approveClass(5)">✓</button>
-                  <button class="btn btn-danger" onclick="rejectClass(5)">✗</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Toán 11 - Học lại</td>
-              <td>Nguyễn Thị F</td>
-              <td>Toán học</td>
-              <td>Trong trường</td>
-              <td>8/15</td>
-              <td>T2, T4 - 15:00</td>
-              <td><span class="badge badge-approved">Đã duyệt</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewClassDetail(6)">👁️</button>
-                  <button class="btn btn-warning" onclick="editClass(6)">✏️</button>
-                </div>
+              <td colspan="8" style="text-align: center; padding: 40px;">
+                <div class="small-muted">Đang tải dữ liệu...</div>
               </td>
             </tr>
           </tbody>
         </table>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="pagination-btn" id="prevPage" onclick="changePage(-1)" disabled>← Trước</button>
+          <span class="pagination-info" id="pageInfo">Trang 1 / 1</span>
+          <button class="pagination-btn" id="nextPage" onclick="changePage(1)" disabled>Tiếp →</button>
+        </div>
       </div>
     </main>
   </div>
 
-  <!-- Modal -->
-  <div id="classModal" class="modal">
+  <!-- Modal Create Class -->
+  <div id="createClassModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Chi tiết Lớp học</h2>
-        <button class="modal-close" onclick="closeModal()">×</button>
+        <h2 class="modal-title">📚 Tạo Lớp Học Mới</h2>
+        <button class="close" onclick="closeModal('createClassModal')">&times;</button>
       </div>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">Tên lớp</div>
-          <div class="info-value" id="modalClassName">Toán 12 - Luyện thi THPT</div>
+
+      <form id="createClassForm">
+        <div class="form-group">
+          <label for="className" class="form-label required">Tên lớp học</label>
+          <input type="text" id="className" name="className" class="form-input" 
+                 placeholder="Ví dụ: Toán 12 - Luyện thi THPT" required>
+          <div class="form-help">Tên lớp nên rõ ràng, dễ nhận biết</div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Giáo viên</div>
-          <div class="info-value" id="modalTeacher">Nguyễn Văn A</div>
+
+        <div class="form-group">
+          <label for="classSubject" class="form-label required">Môn học</label>
+          <select id="classSubject" name="subject" class="form-select" required>
+            <option value="">Chọn môn học</option>
+            <option value="math">Toán học</option>
+            <option value="physics">Vật lý</option>
+            <option value="chemistry">Hóa học</option>
+            <option value="english">Tiếng Anh</option>
+            <option value="biology">Sinh học</option>
+            <option value="literature">Ngữ văn</option>
+            <option value="history">Lịch sử</option>
+            <option value="geography">Địa lý</option>
+          </select>
         </div>
-        <div class="info-item">
-          <div class="info-label">Môn học</div>
-          <div class="info-value" id="modalSubject">Toán học</div>
+
+        <div class="form-group">
+          <label class="form-label required">Loại lớp học</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="type" value="in-school" required>
+              <span>🏫 Trong trường</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="type" value="out-school" required>
+              <span>🏠 Ngoài trường</span>
+            </label>
+          </div>
+          
+          <!-- Compliance Note for In-School -->
+          <div id="inSchoolNote" class="compliance-note" style="display: none;">
+            <h4>📋 Quy định lớp trong trường (Thông tư 29):</h4>
+            <ul class="compliance-list">
+              <li>Không thu học phí</li>
+              <li>Chỉ dành cho 3 nhóm học sinh:</li>
+              <li>- Học sinh thi rớt môn học kỳ gần nhất</li>
+              <li>- Học sinh được chọn bồi dưỡng năng khiếu</li>
+              <li>- Học sinh năm cuối tự nguyện ôn thi</li>
+            </ul>
+          </div>
+
+          <!-- Compliance Note for Out-School -->
+          <div id="outSchoolNote" class="compliance-note" style="display: none;">
+            <h4>📋 Quy định lớp ngoài trường (Thông tư 29):</h4>
+            <ul class="compliance-list">
+              <li>Được thu học phí theo quy định</li>
+              <li>Phải công khai thông tin: môn học, địa điểm, phương pháp giảng dạy</li>
+              <li>Công khai lịch học, danh sách giáo viên, học phí</li>
+              <li>Tuân thủ quy định về thời gian học (7h-21h)</li>
+            </ul>
+          </div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Loại hình</div>
-          <div class="info-value" id="modalType">Ngoài trường</div>
+
+        <div class="form-group">
+          <label for="classDescription" class="form-label">Mô tả lớp học</label>
+          <textarea id="classDescription" name="description" class="form-textarea" 
+                    placeholder="Mô tả ngắn gọn về mục tiêu, nội dung giảng dạy..."></textarea>
+          <div class="form-help">Tối đa 500 ký tự</div>
         </div>
-        <div class="info-item">
-          <div class="info-label">Số học sinh</div>
-          <div class="info-value" id="modalStudents">25/30</div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('createClassModal')">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary">Tạo lớp học</button>
         </div>
-        <div class="info-item">
-          <div class="info-label">Học phí</div>
-          <div class="info-value" id="modalFee">1.500.000 VNĐ/tháng</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Lịch học</div>
-          <div class="info-value" id="modalSchedule">T2, T4, T6 - 18:00-20:00</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Địa điểm</div>
-          <div class="info-value" id="modalLocation">Phòng 301, Tầng 3</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Ngày khai giảng</div>
-          <div class="info-value" id="modalStartDate">01/11/2025</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Ngày kết thúc</div>
-          <div class="info-value" id="modalEndDate">30/05/2026</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Assign Teacher -->
+  <div id="assignTeacherModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">👨‍🏫 Phân Công Giáo Viên</h2>
+        <button class="close" onclick="closeModal('assignTeacherModal')">&times;</button>
+      </div>
+
+      <div class="class-info">
+        <h4>Thông tin lớp học</h4>
+        <div class="class-details">
+          <div class="detail-item">
+            <span class="detail-label">Lớp:</span>
+            <span class="detail-value" id="infoClassName">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Môn học:</span>
+            <span class="detail-value" id="infoSubject">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Loại lớp:</span>
+            <span class="detail-value" id="infoType">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Trạng thái:</span>
+            <span class="detail-value" id="infoStatus">-</span>
+          </div>
         </div>
       </div>
-      <div class="info-item">
-        <div class="info-label">Mô tả</div>
-        <div class="info-value" id="modalDescription">Lớp ôn thi THPT Quốc gia môn Toán, tập trung vào các dạng bài thi thường gặp.</div>
+
+      <form id="assignTeacherForm">
+        <input type="hidden" id="assignClassId">
+        
+        <div class="form-group">
+          <label for="teacherSelect" class="form-label">Chọn giáo viên</label>
+          <select id="teacherSelect" class="form-select" required>
+            <option value="">Đang tải danh sách giáo viên...</option>
+          </select>
+          <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">
+            Chỉ hiển thị giáo viên đã được phê duyệt và dạy môn phù hợp
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('assignTeacherModal')">Hủy bỏ</button>
+          <button type="submit" class="btn btn-primary" id="assignSubmitBtn" disabled>Phân công</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Create Schedule -->
+  <div id="createScheduleModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">📅 Lập Lịch Học</h2>
+        <button class="close" onclick="closeModal('createScheduleModal')">&times;</button>
       </div>
-      <div class="info-item" style="margin-top: 16px;">
-        <div class="info-label">Danh sách học sinh (25)</div>
-        <div class="student-list" id="modalStudentList">
-          <div class="student-item">1. Nguyễn Văn X - Lớp 12A1</div>
-          <div class="student-item">2. Trần Thị Y - Lớp 12A1</div>
-          <div class="student-item">3. Lê Văn Z - Lớp 12A2</div>
-          <div class="student-item">4. Phạm Thị K - Lớp 12A2</div>
-          <div class="student-item">5. Hoàng Văn L - Lớp 12A3</div>
+
+      <div class="class-info">
+        <h4>Thông tin lớp học</h4>
+        <div class="class-details">
+          <div class="detail-item">
+            <span class="detail-label">Lớp:</span>
+            <span class="detail-value" id="scheduleClassName">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Môn học:</span>
+            <span class="detail-value" id="scheduleSubject">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Giáo viên:</span>
+            <span class="detail-value" id="scheduleTeacher">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="compliance-note">
+        ⚠️ <strong>Quy định thời gian học:</strong> Lớp học chỉ được diễn ra trong khung giờ từ 7:00 đến 21:00 theo quy định của Thông tư 29.
+      </div>
+
+      <div style="margin: 20px 0;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #1e293b;">Thêm lịch học mới</h3>
+        <form id="createScheduleForm">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
+            <div class="form-group">
+              <label for="dayOfWeek" class="form-label">Thứ</label>
+              <select id="dayOfWeek" class="form-select" required>
+                <option value="">Chọn thứ</option>
+                <option value="MONDAY">Thứ 2</option>
+                <option value="TUESDAY">Thứ 3</option>
+                <option value="WEDNESDAY">Thứ 4</option>
+                <option value="THURSDAY">Thứ 5</option>
+                <option value="FRIDAY">Thứ 6</option>
+                <option value="SATURDAY">Thứ 7</option>
+                <option value="SUNDAY">Chủ nhật</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="startTime" class="form-label">Giờ bắt đầu</label>
+              <input type="time" id="startTime" class="form-input" 
+                     min="07:00" max="21:00" required>
+            </div>
+
+            <div class="form-group">
+              <label for="endTime" class="form-label">Giờ kết thúc</label>
+              <input type="time" id="endTime" class="form-input" 
+                     min="07:00" max="21:00" required>
+            </div>
+
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary" style="margin-bottom: 0;">Thêm</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="schedule-list">
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: #1e293b;">Lịch học đã thêm</h3>
+        <div id="addedSchedules">
+          <div class="empty-state">Chưa có lịch học nào được thêm</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('createScheduleModal')">Hủy bỏ</button>
+        <button type="button" class="btn btn-success" id="saveAllBtn" onclick="saveAllSchedules()" disabled>Lưu tất cả lịch học</button>
+      </div>
+    </div>
+  </div>
+      
+  <div id="viewScheduleModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Lịch học</h2>
+        <button class="close" onclick="closeModal('viewScheduleModal')">&times;</button>
+      </div>
+
+      <div class="class-info">
+        <h4>Thông tin lớp</h4>
+        <div class="class-details">
+          <div class="detail-item">
+            <span class="detail-label">Lớp:</span>
+            <span class="detail-value" id="viewClassName">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Môn:</span>
+            <span class="detail-value" id="viewClassSubject">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Giáo viên:</span>
+            <span class="detail-value" id="viewClassTeacher">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-list">
+        <h3>Lịch học</h3>
+        <div id="viewSchedules">
+          <div class="empty-state">Đang tải...</div>
         </div>
       </div>
     </div>
   </div>
 
+
   <script>
-    // View class detail
-    function viewClassDetail(classId) {
-      // In real app: fetch class data from API
-      document.getElementById('classModal').classList.add('show');
-    }
-
-    // Close modal
-    function closeModal() {
-      document.getElementById('classModal').classList.remove('show');
-    }
-
-    // Approve class
-    async function approveClass(classId) {
-      if (confirm('Bạn có chắc muốn phê duyệt lớp học này?')) {
-        try {
-          // API: await fetch(`/api/admin/classes/${classId}/approve`, { method: 'POST' });
-          alert('Đã phê duyệt lớp học thành công!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
-      }
-    }
-
-    // Reject class
-    async function rejectClass(classId) {
-      const reason = prompt('Nhập lý do từ chối:');
-      if (reason) {
-        try {
-          // API call
-          alert('Đã từ chối lớp học!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
-      }
-    }
-
-    // Edit class
-    function editClass(classId) {
-      alert('Chức năng chỉnh sửa lớp học (sẽ mở form chỉnh sửa)');
-    }
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      // Filter table rows
-    });
-
-    // Filter by status
-    document.getElementById('statusFilter').addEventListener('change', (e) => {
-      // Filter table by status
-    });
-
-    // Filter by type
-    document.getElementById('typeFilter').addEventListener('change', (e) => {
-      // Filter table by type
-    });
-
-    // Filter by subject
-    document.getElementById('subjectFilter').addEventListener('change', (e) => {
-      // Filter table by subject
-    });
-
-    // Load statistics
-    async function loadStats() {
-      // API call to get stats
-    }
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('Bạn có chắc muốn đăng xuất?')) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
-      }
-    });
-
-    // Initialize
-    window.addEventListener('DOMContentLoaded', () => {
-      loadStats();
-    });
+    // show/hide compliance notes when user selects type in create modal
+    (function () {
+      const inNote = document.getElementById("inSchoolNote");
+      const outNote = document.getElementById("outSchoolNote");
+      document.querySelectorAll("input[name='type']").forEach(r => {
+        r.addEventListener("change", () => {
+          if (r.value === "in-school" && r.checked) {
+            inNote.style.display = "block";
+            outNote.style.display = "none";
+          } else if (r.value === "out-school" && r.checked) {
+            outNote.style.display = "block";
+            inNote.style.display = "none";
+          }
+        });
+      });
+    })();
   </script>
+
+  <script src="assets/js/tms-api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/rbac.js"></script>
+  <!-- PAGE LOGIC -->
+  <script src="assets/js/page_manage_classes.js"></script>
+
 </body>
 </html>

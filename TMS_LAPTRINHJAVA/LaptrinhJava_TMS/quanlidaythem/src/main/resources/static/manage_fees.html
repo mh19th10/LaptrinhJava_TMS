@@ -16,7 +16,7 @@
       --accent: #6A8CFF;
       --muted: #64748b;
       --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
-      --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
+      --shadow-2: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     body {
@@ -139,23 +139,36 @@
 
     .search-box {
       position: relative;
+      display: flex;
+      gap: 8px;
     }
 
     .search-box input {
-      padding: 10px 36px 10px 12px;
+      padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.3);
       background: rgba(255,255,255,0.9);
-      width: 280px;
+      width: 200px;
       font-size: 0.9rem;
     }
 
-    .search-box::after {
-      content: '🔍';
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
+    .search-btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background: var(--primary-600);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .search-btn:hover {
+      background: #0066dd;
+      transform: translateY(-2px);
     }
 
     .filter-select {
@@ -195,6 +208,7 @@
       padding: 18px;
       box-shadow: var(--shadow-1);
       transition: transform 0.3s ease;
+      text-align: center;
     }
 
     .stat-card:hover {
@@ -274,19 +288,9 @@
       color: white;
     }
 
-    .btn-primary:hover {
-      background: #0066dd;
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-1);
-    }
-
     .btn-success {
       background: #10b981;
       color: white;
-    }
-
-    .btn-success:hover {
-      background: #059669;
     }
 
     .btn-info {
@@ -294,17 +298,9 @@
       color: white;
     }
 
-    .btn-info:hover {
-      background: #0891b2;
-    }
-
     .btn-warning {
       background: #f59e0b;
       color: white;
-    }
-
-    .btn-warning:hover {
-      background: #d97706;
     }
 
     .btn-group {
@@ -340,95 +336,6 @@
       color: #1e40af;
     }
 
-    /* Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.6);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 2px solid rgba(15,23,42,0.06);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--muted);
-    }
-
-    .modal-close:hover {
-      color: #ef4444;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .info-label {
-      font-size: 0.85rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
-
-    .info-value {
-      font-size: 0.95rem;
-      color: #0f172a;
-    }
-
-    .payment-history {
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 2px solid rgba(15,23,42,0.06);
-    }
-
-    .payment-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      border-radius: 8px;
-      background: rgba(102,126,234,0.03);
-      margin-bottom: 8px;
-    }
-
     @media (max-width: 1100px) {
       .stats-row {
         grid-template-columns: repeat(2, 1fr);
@@ -444,15 +351,11 @@
       .stats-row {
         grid-template-columns: 1fr;
       }
-      .filter-bar {
-        flex-direction: column;
+      .search-box {
         width: 100%;
       }
       .search-box input {
-        width: 100%;
-      }
-      .info-grid {
-        grid-template-columns: 1fr;
+        flex: 1;
       }
     }
   </style>
@@ -469,12 +372,12 @@
       </div>
 
       <nav class="nav">
-        <a href="dashboard_admin.html">🏠 Trang chủ</a>
-        <a href="manage_teachers.html">👨‍🏫 Quản lý giáo viên</a>
-        <a href="manage_classes.html">📚 Quản lý lớp học</a>
-        <a href="manage_fees.html" class="active">💰 Quản lý học phí</a>
-        <a href="reports_admin.html">📊 Báo cáo & Thống kê</a>
-        <a href="settings_admin.html">⚙️ Cài đặt</a>
+        <a href="dashboard_admin.html" data-permission="dashboard:view">🏠 Trang chủ</a>
+        <a href="manage_teachers.html" data-permission="teachers:view">👨‍🏫 Quản lý giáo viên</a>
+        <a href="manage_classes.html" data-permission="classes:view">📚 Quản lý lớp học</a>
+        <a href="manage_fees.html" class="active" data-permission="fees:view">💰 Quản lý học phí</a>
+        <a href="reports_admin.html" data-permission="reports:view">📊 Báo cáo & Thống kê</a>
+        <a href="settings_admin.html" data-permission="settings:view">⚙️ Cài đặt</a>
         <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
       </nav>
     </aside>
@@ -487,26 +390,26 @@
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="stats-row">
+      <!-- Stats - Chỉ Admin thấy -->
+      <div class="stats-row" data-role-show="ADMIN">
         <div class="stat-card">
           <div class="icon">💵</div>
-          <div class="num" id="statTotalRevenue">125M</div>
+          <div class="num" id="statTotalRevenue">0</div>
           <div class="label">Tổng doanh thu (tháng)</div>
         </div>
         <div class="stat-card">
           <div class="icon">✅</div>
-          <div class="num" id="statPaid">234</div>
+          <div class="num" id="statPaid">0</div>
           <div class="label">Đã thanh toán</div>
         </div>
         <div class="stat-card">
           <div class="icon">⏳</div>
-          <div class="num" id="statPending">45</div>
+          <div class="num" id="statPending">0</div>
           <div class="label">Chờ thanh toán</div>
         </div>
         <div class="stat-card">
           <div class="icon">⚠️</div>
-          <div class="num" id="statOverdue">12</div>
+          <div class="num" id="statOverdue">0</div>
           <div class="label">Quá hạn</div>
         </div>
       </div>
@@ -516,21 +419,27 @@
         <div class="filter-bar">
           <div class="search-box">
             <input type="text" id="searchInput" placeholder="Tìm học sinh hoặc lớp học...">
+            <button class="search-btn" onclick="searchFees()">
+              <span>🔍</span>
+              <span>Tìm</span>
+            </button>
           </div>
-          <select class="filter-select" id="statusFilter">
+          <select class="filter-select" id="statusFilter" onchange="filterFees()">
             <option value="">Tất cả trạng thái</option>
             <option value="paid">Đã thanh toán</option>
             <option value="pending">Chờ thanh toán</option>
             <option value="overdue">Quá hạn</option>
             <option value="partial">Thanh toán 1 phần</option>
           </select>
-          <select class="filter-select" id="monthFilter">
+          <select class="filter-select" id="monthFilter" onchange="filterFees()">
             <option value="">Tháng hiện tại</option>
+            <option value="12-2025">Tháng 12/2025</option>
+            <option value="11-2025">Tháng 11/2025</option>
             <option value="10-2025">Tháng 10/2025</option>
             <option value="09-2025">Tháng 9/2025</option>
             <option value="08-2025">Tháng 8/2025</option>
           </select>
-          <button class="btn btn-primary" onclick="exportReport()">📥 Xuất báo cáo</button>
+          <button class="btn btn-primary" data-permission="fees:exportReport" onclick="exportReport()">📥 Xuất báo cáo</button>
         </div>
       </div>
 
@@ -553,267 +462,20 @@
           </thead>
           <tbody id="feesTableBody">
             <tr>
-              <td>Nguyễn Văn A</td>
-              <td>Toán 12 - THPT</td>
-              <td>10/2025</td>
-              <td>1.500.000đ</td>
-              <td>1.500.000đ</td>
-              <td>0đ</td>
-              <td>05/10/2025</td>
-              <td><span class="badge badge-paid">Đã thanh toán</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(1)">👁️ Chi tiết</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Trần Thị B</td>
-              <td>Tiếng Anh IELTS</td>
-              <td>10/2025</td>
-              <td>2.000.000đ</td>
-              <td>1.000.000đ</td>
-              <td>1.000.000đ</td>
-              <td>10/10/2025</td>
-              <td><span class="badge badge-partial">Thanh toán 1 phần</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(2)">👁️</button>
-                  <button class="btn btn-success" onclick="markAsPaid(2)">✓ Xác nhận</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Lê Văn C</td>
-              <td>Vật lý 11</td>
-              <td>10/2025</td>
-              <td>1.200.000đ</td>
-              <td>0đ</td>
-              <td>1.200.000đ</td>
-              <td>15/10/2025</td>
-              <td><span class="badge badge-pending">Chờ thanh toán</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(3)">👁️</button>
-                  <button class="btn btn-warning" onclick="sendReminder(3)">📧 Nhắc nhở</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Phạm Thị D</td>
-              <td>Hóa 10 - Giỏi</td>
-              <td>10/2025</td>
-              <td>1.800.000đ</td>
-              <td>0đ</td>
-              <td>1.800.000đ</td>
-              <td>01/10/2025</td>
-              <td><span class="badge badge-overdue">Quá hạn</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(4)">👁️</button>
-                  <button class="btn btn-warning" onclick="sendReminder(4)">📧 Nhắc nhở</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Hoàng Văn E</td>
-              <td>Ngữ văn 12</td>
-              <td>10/2025</td>
-              <td>1.300.000đ</td>
-              <td>1.300.000đ</td>
-              <td>0đ</td>
-              <td>08/10/2025</td>
-              <td><span class="badge badge-paid">Đã thanh toán</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(5)">👁️ Chi tiết</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Nguyễn Thị F</td>
-              <td>Toán 12 - THPT</td>
-              <td>10/2025</td>
-              <td>1.500.000đ</td>
-              <td>0đ</td>
-              <td>1.500.000đ</td>
-              <td>20/10/2025</td>
-              <td><span class="badge badge-pending">Chờ thanh toán</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(6)">👁️</button>
-                  <button class="btn btn-warning" onclick="sendReminder(6)">📧 Nhắc nhở</button>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Trần Văn G</td>
-              <td>Tiếng Anh IELTS</td>
-              <td>10/2025</td>
-              <td>2.000.000đ</td>
-              <td>0đ</td>
-              <td>2.000.000đ</td>
-              <td>03/10/2025</td>
-              <td><span class="badge badge-overdue">Quá hạn</span></td>
-              <td>
-                <div class="btn-group">
-                  <button class="btn btn-info" onclick="viewFeeDetail(7)">👁️</button>
-                  <button class="btn btn-warning" onclick="sendReminder(7)">📧 Nhắc nhở</button>
-                </div>
-              </td>
+              <td colspan="6" class="empty-state">Đang tải dữ liệu...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </main>
   </div>
+  
+  <script src="assets/js/tms-api.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/rbac.js"></script>
 
-  <!-- Modal -->
-  <div id="feeModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Chi tiết Học phí</h2>
-        <button class="modal-close" onclick="closeModal()">×</button>
-      </div>
-      <div class="info-grid">
-        <div class="info-item">
-          <div class="info-label">Học sinh</div>
-          <div class="info-value" id="modalStudent">Nguyễn Văn A</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Lớp học</div>
-          <div class="info-value" id="modalClass">Toán 12 - Luyện thi THPT</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Tháng học</div>
-          <div class="info-value" id="modalMonth">10/2025</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Học phí</div>
-          <div class="info-value" id="modalFee">1.500.000đ</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Đã thanh toán</div>
-          <div class="info-value" id="modalPaid">1.500.000đ</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Còn lại</div>
-          <div class="info-value" id="modalRemaining">0đ</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Hạn đóng</div>
-          <div class="info-value" id="modalDueDate">05/10/2025</div>
-        </div>
-        <div class="info-item">
-          <div class="info-label">Trạng thái</div>
-          <div class="info-value">
-            <span class="badge badge-paid" id="modalStatus">Đã thanh toán</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="payment-history">
-        <div class="h2">Lịch sử thanh toán</div>
-        <div id="paymentHistory">
-          <div class="payment-item">
-            <div>
-              <strong>Thanh toán đầy đủ</strong>
-              <div class="small-muted">05/10/2025 - 14:30</div>
-            </div>
-            <div>
-              <strong>1.500.000đ</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- PAGE LOGIC -->
+  <script src="assets/js/page_manage_fees.js"></script>
 
-  <script>
-    // View fee detail
-    function viewFeeDetail(feeId) {
-      // In real app: fetch fee data from API
-      document.getElementById('feeModal').classList.add('show');
-    }
-
-    // Close modal
-    function closeModal() {
-      document.getElementById('feeModal').classList.remove('show');
-    }
-
-    // Mark as paid
-    async function markAsPaid(feeId) {
-      const amount = prompt('Nhập số tiền đã thanh toán:');
-      if (amount) {
-        try {
-          // API: await fetch(`/api/admin/fees/${feeId}/pay`, { method: 'POST', body: JSON.stringify({ amount }) });
-          alert('Đã xác nhận thanh toán thành công!');
-          location.reload();
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
-      }
-    }
-
-    // Send reminder
-    async function sendReminder(feeId) {
-      if (confirm('Gửi email nhắc nhở thanh toán học phí?')) {
-        try {
-          // API: await fetch(`/api/admin/fees/${feeId}/remind`, { method: 'POST' });
-          alert('Đã gửi email nhắc nhở thành công!');
-        } catch (error) {
-          console.error('Error:', error);
-          alert('Có lỗi xảy ra!');
-        }
-      }
-    }
-
-    // Export report
-    function exportReport() {
-      alert('Đang xuất báo cáo học phí... (Tính năng sẽ tải file Excel)');
-      // In real app: trigger file download
-    }
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const searchTerm = e.target.value.toLowerCase();
-      // Filter table rows
-    });
-
-    // Filter by status
-    document.getElementById('statusFilter').addEventListener('change', (e) => {
-      // Filter table by status
-    });
-
-    // Filter by month
-    document.getElementById('monthFilter').addEventListener('change', (e) => {
-      // Filter table by month
-    });
-
-    // Load statistics
-    async function loadStats() {
-      try {
-        // API: const response = await fetch('/api/admin/fees/statistics');
-        // Update stats
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    }
-
-    // Logout
-    document.getElementById('logoutBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      if (confirm('Bạn có chắc muốn đăng xuất?')) {
-        localStorage.removeItem('currentUser');
-        window.location.href = 'login.html';
-      }
-    });
-
-    // Initialize
-    window.addEventListener('DOMContentLoaded', () => {
-      loadStats();
-    });
-  </script>
 </body>
 </html>

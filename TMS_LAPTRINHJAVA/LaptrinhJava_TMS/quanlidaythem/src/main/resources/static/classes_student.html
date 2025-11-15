@@ -53,52 +53,45 @@
 
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('jwtToken');
-    const role  = (localStorage.getItem('userRole') || '').toUpperCase();
+      const token = localStorage.getItem('authToken');   // FIXED
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      const role = (currentUser.role || "").toUpperCase();
 
-    // 1) Bắt buộc có token
-    if (!token) { alert('Bạn cần đăng nhập để truy cập trang này!'); location.href = 'login.html'; return; }
+      if (!token) { alert('Bạn cần đăng nhập để truy cập trang này!'); location.href = 'login.html'; return; }
 
-    // 2) Chặn vào nhầm trang theo role
-    if (role !== 'STUDENT') {
-      location.href = (role === 'TEACHER') ? 'dashboard_teacher.html' : 'login.html';
-      return;
-    }
+      if (role !== 'STUDENT') {
+          location.href = (role === 'TEACHER') ? 'dashboard_teacher.html' : 'login.html';
+          return;
+      }
 
-    // 3) Gọi API (để xác thực & có thể hiển thị tên)
-    fetch('/api/student/info', { headers: { 'Authorization': 'Bearer ' + token } })
+      fetch('/api/student/info', {
+          headers: { 'Authorization': 'Bearer ' + token }
+      })
       .then(res => {
-        if (res.status === 401) throw new Error('UNAUTH');
-        if (res.status === 403) throw new Error('FORBIDDEN');
-        if (!res.ok)        throw new Error('OTHER');
-        return res.json();
+          if (res.status === 401) throw new Error('UNAUTH');
+          if (res.status === 403) throw new Error('FORBIDDEN');
+          if (!res.ok) throw new Error();
+          return res.json();
       })
       .then(data => {
-        const nameEl = document.getElementById('studentName');
-        if (nameEl) nameEl.textContent = '– Chào, ' + (data.fullName || 'Học sinh');
+          const nameEl = document.getElementById('studentName');
+          if (nameEl) nameEl.textContent = '– Chào, ' + (data.fullName || 'Học sinh');
       })
       .catch(err => {
-        if (err.message === 'UNAUTH') {
-          alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-          localStorage.clear(); location.href = 'login.html';
-        } else if (err.message === 'FORBIDDEN') {
-          alert('Bạn không có quyền truy cập trang này.');
-          location.href = 'dashboard_teacher.html';
-        } else {
-          console.error(err); alert('Không thể tải dữ liệu người dùng.');
-        }
+          localStorage.clear();
+          location.href = 'login.html';
       });
 
-    // 4) Đăng xuất (có thể null-check)
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        localStorage.clear();
-        location.href = 'login.html';
-      });
-    }
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+          logoutBtn.addEventListener('click', e => {
+              e.preventDefault();
+              localStorage.clear();
+              location.href = 'login.html';
+          });
+      }
   });
   </script>
+  <script src="/assets/js/tms-api.js"></script>
 </body>
 </html>

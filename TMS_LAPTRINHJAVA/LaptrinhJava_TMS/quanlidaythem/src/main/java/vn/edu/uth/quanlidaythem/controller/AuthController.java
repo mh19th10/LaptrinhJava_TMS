@@ -1,6 +1,13 @@
 package vn.edu.uth.quanlidaythem.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,52 +24,112 @@ import vn.edu.uth.quanlidaythem.service.UserDetailsImpl;
 @RequestMapping("/api/auth")
 public class AuthController {
     
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    
     private final AuthService authService; 
 
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
 
-    // FIX: Đồng bộ các case để sử dụng tên vai trò chuẩn tiếng Anh
-   private String getRedirectUrlByRole(String role) {
-    return switch (role) {
-        case "ADMIN"   -> "/dashboard_admin.html";              // đúng tên file trong static
-        case "TEACHER" -> "/dashboard_teacher.html";  // đúng tên file
-        case "STUDENT" -> "/dashboard_student.html";  // đúng tên file
-        default -> "/index.html";
-    };
-}
+    private String getRedirectUrlByRole(String role) {
+        String cleanRole = role.replace("ROLE_", "").toUpperCase();
+        
+        return switch (cleanRole) {
+            case "ADMIN" -> "/dashboard_admin.html";
+            case "TEACHER" -> "/dashboard_teacher.html";
+            case "STUDENT" -> "/dashboard_student.html";
+            default -> {
+                logger.warn("Unknown role: {}, redirecting to default page", cleanRole);
+                yield "/index.html";
+            }
+        };
+    }
 
-    // --- API Đăng ký (giữ nguyên) ---
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest registerRequest) {
         try {
-            authService.registerNewUser(registerRequest); 
-            return ResponseEntity.ok("Đăng ký thành công!"); 
+            logger.info("Registration attempt for user: {}", registerRequest.getUsername());
+            
+            authService.registerNewUser(registerRequest);
+            
+            logger.info("Registration successful for user: {}", registerRequest.getUsername());
+            
+            return ResponseEntity.ok().body(
+                new SimpleResponse("Đăng ký thành công! Vui lòng đăng nhập.")
+            );
+            
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            logger.error("Registration failed for user: {} - Error: {}", 
+                registerRequest.getUsername(), e.getMessage());
+            
+            return ResponseEntity.badRequest().body(
+                new SimpleResponse(e.getMessage())
+            );
         }
     }
 
-    // --- API Đăng nhập (logic bên trong không đổi) ---
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
         try {
+            logger.info("Login attempt for user: {}", loginRequest.getUsername());
+            
             String jwt = authService.authenticateAndGenerateToken(loginRequest);
 
-            UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             
-            String redirectUrl = getRedirectUrlByRole(userDetails.getRole());
+            if (authentication == null || !authentication.isAuthenticated()) {
+                logger.error("Authentication failed for user: {}", loginRequest.getUsername());
+                throw new RuntimeException("Xác thực thất bại");
+            }
+
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
             
-            return ResponseEntity.ok(new LoginResponse(
+            List<String> roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+            
+            String primaryRole = roles.stream()
+                .findFirst()
+                .orElse("ROLE_STUDENT")
+                .replace("ROLE_", "");
+            
+            String redirectUrl = getRedirectUrlByRole(primaryRole);
+            
+            logger.info("Login successful - User: {}, Role: {}, Redirect: {}", 
+                userDetails.getUsername(), primaryRole, redirectUrl);
+            
+            LoginResponse response = new LoginResponse(
                 jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
-                userDetails.getRole(),
+                userDetails.getEmail(),
+                roles,
                 redirectUrl
-            ));
+            );
+            
+            return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Tên đăng nhập hoặc mật khẩu không đúng.");
+            logger.error("Login failed for user: {} - Error: {}", 
+                loginRequest.getUsername(), e.getMessage());
+            
+            return ResponseEntity.status(401).body(
+                new SimpleResponse("Tên đăng nhập hoặc mật khẩu không đúng.")
+            );
+        }
+    }
+    
+    // ✅ DTO cho response đơn giản
+    private static class SimpleResponse {
+        private final String message;
+        
+        public SimpleResponse(String message) {
+            this.message = message;
+        }
+        
+        public String getMessage() {
+            return message;
         }
     }
 }

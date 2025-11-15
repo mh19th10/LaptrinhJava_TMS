@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết lớp học - Giáo viên</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-600: #0077FF;
+            --accent: #6A8CFF;
+            --muted: #64748b;
+            --shadow-1: 0 2px 8px rgba(0,0,0,0.08);
+            --shadow-2: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #c8d5ff 0%, #e0d4f7 100%);
+            min-height: 100vh;
+            padding: 28px;
+            color: #0f172a;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            width: 260px;
+            min-height: calc(100vh - 56px);
+            background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.45));
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-2);
+            position: sticky;
+            top: 28px;
+            align-self: flex-start;
+        }
+
+        .brand {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(15,23,42,0.04);
+        }
+
+        .brand .logo {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .brand h3 {
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .small-muted {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .nav {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #07305a;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .nav a.active, .nav a:hover {
+            background: linear-gradient(90deg, rgba(0,119,255,0.12), rgba(106,140,255,0.06));
+            color: var(--primary-600);
+        }
+
+        .main {
+            flex: 1;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-600);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0066dd;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: var(--shadow-2);
+        }
+
+        .card.stat {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card.stat .num {
+            font-weight: 700;
+            font-size: 2rem;
+            color: var(--primary-600);
+        }
+
+        .h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        .table thead {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .table thead th {
+            padding: 12px;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .table thead th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+
+        .table thead th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid rgba(15,23,42,0.06);
+            transition: background 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(102,126,234,0.05);
+        }
+
+        .table tbody td {
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-present {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-absent {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .schedule-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-1);
+        }
+
+        .schedule-day {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .schedule-time {
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">T</div>
+                <div>
+                    <h3>TMS</h3>
+                    <div class="small-muted">Giáo viên</div>
+                </div>
+            </div>
+            
+            <nav class="nav">
+                <a href="dashboard_teacher.html">🏠 Trang chủ</a>
+                <a href="#" class="active">📚 Lớp học của tôi</a>
+                <a href="#">📊 Báo cáo</a>
+                <a href="#">⚙️ Cài đặt</a>
+                <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="header-row">
+                <div>
+                    <div class="h1" id="className">Đang tải...</div>
+                    <div class="small-muted" id="classInfo">Thông tin lớp học</div>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="openEditScheduleModal()">
+                        📅 Chỉnh sửa lịch học
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="cards">
+                <div class="card stat">
+                    <div class="small-muted">👨‍🎓 Số học sinh</div>
+                    <div class="num" id="studentCount">0</div>
+                    <div class="small-muted">Đang theo học</div>
+                </div>
+                <div class="card stat">
+                    <div class="small-muted">📅 Buổi học/tuần</div>
+                    <div class="num" id="sessionCount">0</div>
+                    <div class="small-muted">Lịch học cố định</div>
+                </div>
+                <div class="card stat">
+                    <div class="small-muted">✅ Điểm danh hôm nay</div>
+                    <div class="num" id="attendanceToday">-</div>
+                    <div class="small-muted">Có mặt / Tổng số</div>
+                </div>
+            </div>
+
+            <!-- Class Info -->
+            <div class="card">
+                <div class="h2">Thông tin lớp học</div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Tên lớp</div>
+                        <div class="info-value" id="infoClassName">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Môn học</div>
+                        <div class="info-value" id="infoSubject">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Loại lớp</div>
+                        <div class="info-value" id="infoType">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Trạng thái</div>
+                        <div class="info-value" id="infoStatus">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule -->
+            <div class="card">
+                <div class="h2">📅 Lịch học trong tuần</div>
+                <div class="schedule-grid" id="scheduleGrid">
+                    <div class="small-muted">Đang tải lịch học...</div>
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="card">
+                <div class="h2">📋 Danh sách học sinh</div>
+                <table class="table" id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>Họ và tên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 20px;">
+                                Đang tải danh sách học sinh...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/api';
+        
+        // Get classId from URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const classId = urlParams.get('classId');
+
+        if (!classId) {
+            alert('Không tìm thấy thông tin lớp học!');
+            window.location.href = 'dashboard_teacher.html';
+        }
+
+        // Load class detail
+        async function loadClassDetail() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/classes/${classId}`);
+                const classData = await response.json();
+
+                // Update header
+                document.getElementById('className').textContent = classData.className;
+                document.getElementById('classInfo').textContent = 
+                    `${classData.subject} • ${classData.type === 'in-school' ? 'Trong trường' : 'Ngoài trường'} • ${getStatusText(classData.status)}`;
+
+                // Update info section
+                document.getElementById('infoClassName').textContent = classData.className;
+                document.getElementById('infoSubject').textContent = classData.subject;
+                document.getElementById('infoType').textContent = classData.type === 'in-school' ? 'Trong trường' : 'Ngoài trường';
+                document.getElementById('infoStatus').textContent = getStatusText(classData.status);
+
+                // Update stats
+                document.getElementById('studentCount').textContent = classData.students ? classData.students.length : 0;
+                document.getElementById('sessionCount').textContent = classData.schedules ? classData.schedules.length : 0;
+
+                // Load schedules
+                loadSchedules(classData.schedules);
+
+                // Load students
+                loadStudents(classData.students);
+
+            } catch (error) {
+                console.error('Error loading class detail:', error);
+                alert('Lỗi khi tải thông tin lớp học: ' + error.message);
+            }
+        }
+
+        function loadSchedules(schedules) {
+            const container = document.getElementById('scheduleGrid');
+            
+            if (!schedules || schedules.length === 0) {
+                container.innerHTML = '<div class="small-muted">Chưa có lịch học nào được thiết lập</div>';
+                return;
+            }
+
+            container.innerHTML = schedules.map(schedule => `
+                <div class="schedule-item">
+                    <div class="schedule-day">${getDayText(schedule.dayOfWeek)}</div>
+                    <div class="schedule-time">⏰ ${schedule.startTime} - ${schedule.endTime}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadStudents(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            
+            if (!students || students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px;">
+                            Chưa có học sinh nào trong lớp
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = students.map((student, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${student.fullName}</strong></td>
+                    <td>${student.email || '-'}</td>
+                    <td>${student.phone || '-'}</td>
+                    <td><span class="badge badge-active">${student.status === 'active' ? 'Đang học' : student.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function getDayText(day) {
+            const dayMap = {
+                'MONDAY': 'Thứ 2',
+                'TUESDAY': 'Thứ 3',
+                'WEDNESDAY': 'Thứ 4',
+                'THURSDAY': 'Thứ 5',
+                'FRIDAY': 'Thứ 6',
+                'SATURDAY': 'Thứ 7',
+                'SUNDAY': 'Chủ nhật'
+            };
+            return dayMap[day] || day;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'Chờ duyệt',
+                'approved': 'Đã duyệt',
+                'active': 'Đang học',
+                'completed': 'Hoàn thành'
+            };
+            return statusMap[status] || status;
+        }
+
+        function openEditScheduleModal() {
+            alert('Chức năng chỉnh sửa lịch học đang được phát triển...\n\nBạn có thể liên hệ Admin để thay đổi lịch học.');
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadClassDetail();
+        });
+    </script>
+</body>
+</html>

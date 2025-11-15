@@ -24,13 +24,13 @@
         </div>
       </div>
       <nav class="nav">
-  <a href="dashboard_teacher.html">🏠 Trang chủ</a>
-  <a href="register-subject_teacher.html">📚 Đăng ký môn</a>
-  <a href="register-class_teacher.html">🗂️ Đăng ký lớp</a>
-  <a href="report_teacher.html">📄 Báo cáo</a>
-  <a href="profile_teacher.html">👤 Hồ sơ</a>
-  <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
-</nav>
+        <a href="dashboard_teacher.html">🏠 Trang chủ</a>
+        <a href="register-subject_teacher.html">📚 Đăng ký môn</a>
+        <a href="register-class_teacher.html">🗂️ Đăng ký lớp</a>
+        <a href="report_teacher.html">📄 Báo cáo</a>
+        <a href="profile_teacher.html" class="active">👤 Hồ sơ</a>
+        <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
+      </nav>
     </aside>
 
     <main class="main">
@@ -109,10 +109,13 @@
     </main>
   </div>
 
-  <!-- Dùng helper chung -->
-  <script type="module">
-    import { requireLoginOrRedirect, requireRoleOrRedirect, wireLogout } from './assets/js/api.js';
+  <!-- FIX: load helpers trước -->
+  <script src="/assets/js/tms-api.js"></script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/rbac.js"></script>
 
+  <!-- FIX: bỏ type="module", chuyển thành script thường -->
+  <script>
     const token = localStorage.getItem('jwtToken');
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -141,10 +144,7 @@
       if (!iso) return '';
       const d = new Date(iso);
       if (isNaN(d)) return '';
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,'0');
-      const dd = String(d.getDate()).padStart(2,'0');
-      return `${y}-${m}-${dd}`;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
     async function loadProfile() {
@@ -182,7 +182,7 @@
 
         const body = {
           fullName:    fullName().value.trim(),
-          dob:         dob().value || null,           // yyyy-MM-dd
+          dob:         dob().value || null,
           phone:       phone().value.trim(),
           mainSubject: mainSubject().value.trim(),
           degree:      degree().value.trim(),
@@ -200,9 +200,10 @@
           if (res.status === 401) throw new Error('UNAUTH');
           if (res.status === 403) throw new Error('FORBIDDEN');
           if (!res.ok) throw new Error(await res.text() || 'ERR');
+
           statusEl().textContent = 'Cập nhật thành công!';
           statusEl().style.color = 'green';
-          // reload để đồng bộ dữ liệu mới (nếu BE normalize)
+
           await loadProfile();
         } catch (e) {
           statusEl().textContent =
@@ -210,45 +211,52 @@
             e.message==='UNAUTH' ? 'Phiên hết hạn' :
             ('Lỗi: ' + e.message);
           statusEl().style.color = 'red';
-          if (e.message==='UNAUTH' || e.message==='FORBIDDEN') {
-            localStorage.clear(); location.href='login.html';
+          if (['UNAUTH','FORBIDDEN'].includes(e.message)) {
+            localStorage.clear();
+            location.href='login.html';
           }
         }
       });
     }
 
-    // ---------- ĐỔI MẬT KHẨU ----------
     function bindChangePassword() {
       const btn = document.getElementById('btnChangePwd');
       btn.addEventListener('click', async () => {
-        const oldPassword = (document.getElementById('oldPassword').value || '').trim();
-        const newPassword = (document.getElementById('newPassword').value || '').trim();
-        const confirmPassword = (document.getElementById('confirmPassword').value || '').trim();
+        const oldPassword = document.getElementById('oldPassword').value.trim();
+        const newPassword = document.getElementById('newPassword').value.trim();
+        const confirmPassword = document.getElementById('confirmPassword').value.trim();
 
         if (!oldPassword || !newPassword || !confirmPassword) {
-          alert('Vui lòng nhập đủ 3 ô mật khẩu.'); return;
+          alert('Vui lòng nhập đủ 3 ô mật khẩu.'); 
+          return;
         }
         if (newPassword !== confirmPassword) {
-          alert('Xác nhận mật khẩu không khớp.'); return;
+          alert('Xác nhận mật khẩu không khớp.');
+          return;
         }
+
         try {
           const res = await fetch('/api/account/change-password', {
             method: 'POST',
-            headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+            headers: { 'Content-Type':'application/json','Authorization':'Bearer '+token },
             body: JSON.stringify({ oldPassword, newPassword, confirmPassword })
           });
+
           const data = await res.json().catch(() => ({}));
           if (!res.ok || data.success === false) {
-            alert(data.message || 'Đổi mật khẩu thất bại.'); return;
+            alert(data.message || 'Đổi mật khẩu thất bại.');
+            return;
           }
+
           alert(data.message || 'Đổi mật khẩu thành công! Vui lòng đăng nhập lại.');
-          localStorage.clear(); location.href='login.html';
+          localStorage.clear();
+          location.href = 'login.html';
         } catch (err) {
-          console.error(err);
           alert('Có lỗi mạng khi đổi mật khẩu.');
         }
       });
     }
   </script>
+
 </body>
 </html>

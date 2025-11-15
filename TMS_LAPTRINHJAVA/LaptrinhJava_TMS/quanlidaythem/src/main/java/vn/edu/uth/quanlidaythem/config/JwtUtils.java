@@ -1,5 +1,6 @@
 package vn.edu.uth.quanlidaythem.config;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
@@ -82,5 +84,27 @@ public class JwtUtils {
             System.err.println("JWT claims string is empty: " + e.getMessage());
         }
         return false;
+    }
+
+        // ✅ THÊM PHƯƠNG THỨC: Lấy tất cả claims từ token
+    public Claims getAllClaimsFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    // ✅ THÊM PHƯƠNG THỨC: Lấy roles từ token (cho debug)
+    public List<String> getRolesFromToken(String token) {
+        try {
+            Claims claims = getAllClaimsFromToken(token);
+            @SuppressWarnings("unchecked")
+            List<String> roles = claims.get("roles", List.class);
+            return roles != null ? roles : new ArrayList<>();
+        } catch (Exception e) {
+            System.err.println("Error getting roles from token: " + e.getMessage());
+            return new ArrayList<>();
+        }
     }
 }
