@@ -1,6 +1,5 @@
-// page_manage_classes.js
 // ======================================
-// PAGE: MANAGE CLASSES (FIXED VERSION)
+// PAGE: MANAGE CLASSES (FINAL MERGED VERSION)
 // ======================================
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -31,7 +30,7 @@ function getAuthHeadersLocal() {
 }
 
 function escapeHtml(s) {
-    if (s == null) return "";
+    if (s === undefined || s === null) return "";
     return String(s)
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -55,6 +54,7 @@ function subjectLabel(s) {
 }
 
 function getStatusText(s) {
+    if (!s) return "Chờ duyệt";
     const map = {
         pending: "Chờ duyệt",
         approved: "Đã duyệt",
@@ -62,7 +62,7 @@ function getStatusText(s) {
         rejected: "Từ chối",
         completed: "Hoàn thành"
     };
-    return map[(s || "").toLowerCase()] || "Chờ duyệt";
+    return map[String(s).toLowerCase()] || String(s);
 }
 
 function vietnameseDay(day) {
@@ -75,24 +75,24 @@ function vietnameseDay(day) {
         SATURDAY: "Thứ Bảy",
         SUNDAY: "Chủ Nhật"
     };
-    return map[day] || day;
+    return map[day] || day || "-";
 }
 
 // ====================== STATS ======================
 async function loadStats() {
     try {
         const res = await fetch("/api/admin/stats/classes-by-status", {
+            method: "GET",
             headers: getAuthHeadersLocal()
         });
         const stats = await res.json();
 
-        document.getElementById("statPending").textContent = stats?.pending ?? 0;
-        document.getElementById("statApproved").textContent = stats?.approved ?? 0;
-        document.getElementById("statActive").textContent = stats?.active ?? 0;
+        document.getElementById("statPending").textContent   = stats?.pending ?? 0;
+        document.getElementById("statApproved").textContent  = stats?.approved ?? 0;
+        document.getElementById("statActive").textContent    = stats?.active ?? 0;
         document.getElementById("statCompleted").textContent = stats?.completed ?? 0;
-
     } catch (err) {
-        console.error("❌ loadStats error:", err);
+        console.error("❌ Lỗi loadStats:", err);
     }
 }
 
@@ -102,25 +102,38 @@ async function loadClasses() {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">Đang tải dữ liệu...</td></tr>`;
 
     try {
-        const url = "/api/classes";
+        const status = document.getElementById("statusFilter")?.value || "";
+        const type   = document.getElementById("typeFilter")?.value || "";
+        const subject= document.getElementById("subjectFilter")?.value || "";
+        const q      = document.getElementById("searchInput")?.value?.trim() || "";
+
+        const params = new URLSearchParams();
+        params.set("page", "0");
+        params.set("size", "999");
+        if (status) params.set("status", status);
+        if (type) params.set("type", type);
+
+        const url = "/api/admin/classes?" + params.toString();
         const res = await fetch(url, { headers: getAuthHeadersLocal() });
         const body = await res.json();
 
         let list = Array.isArray(body) ? body : (body?.content ?? []);
 
-        const status = document.getElementById("statusFilter")?.value?.trim();
-        const type = document.getElementById("typeFilter")?.value?.trim();
-        const subject = document.getElementById("subjectFilter")?.value?.trim();
-        const q = document.getElementById("searchInput")?.value?.trim().toLowerCase();
-
-        if (status) list = list.filter(c => c.status?.toLowerCase() === status.toLowerCase());
-        if (type) list = list.filter(c => c.type === type);
-        if (subject) list = list.filter(c => c.subject?.toLowerCase() === subject.toLowerCase());
+        if (subject) {
+            list = list.filter(c => String(c.subject || "").toLowerCase() === subject.toLowerCase());
+        }
 
         if (q) {
+            const qlow = q.toLowerCase();
             list = list.filter(c => {
-                const text = `${c.className} ${c.subject} ${c.teacher?.fullName}`.toLowerCase();
-                return text.includes(q);
+                const any = [
+                    c.className,
+                    c.subject,
+                    c.teacher?.fullName,
+                    c.teacher?.email,
+                    c.teacher?.username
+                ].filter(Boolean).join(" ").toLowerCase();
+                return any.includes(qlow);
             });
         }
 
@@ -129,28 +142,30 @@ async function loadClasses() {
             return;
         }
 
-        tbody.innerHTML = list.map(c => `
-            <tr>
-                <td>${escapeHtml(c.className)}</td>
-                <td>${escapeHtml(c.teacher?.fullName || "Chưa phân công")}</td>
-                <td>${escapeHtml(subjectLabel(c.subject))}</td>
-                <td>${c.type === "in-school" ? "Trong trường" : "Ngoài trường"}</td>
-                <td>${c.studentCount ?? (c.students?.length ?? 0)}</td>
-                <td>${c.schedules?.length ?? 0}</td>
-                <td>${getStatusText(c.status)}</td>
-                <td>
-                    ${
-                        c.status === "pending"
-                        ? `<button class="btn btn-success" onclick="approveClass(${c.id})">Duyệt</button>
-                           <button class="btn btn-danger" onclick="rejectClass(${c.id})">Từ chối</button>`
-                        : `<button class="btn btn-info" onclick="viewSchedule(${c.id})">Xem lịch</button>`
-                    }
-                </td>
-            </tr>
-        `).join("");
+        tbody.innerHTML = list.map(c => {
+            const teacherName = c.teacher?.fullName || "Chưa phân công";
+            return `
+                <tr>
+                    <td>${escapeHtml(c.className)}</td>
+                    <td>${escapeHtml(teacherName)}</td>
+                    <td>${escapeHtml(subjectLabel(c.subject))}</td>
+                    <td>${c.type === "in-school" ? "Trong trường" : "Ngoài trường"}</td>
+                    <td>${c.studentCount ?? (c.students?.length ?? 0)}</td>
+                    <td>${Array.isArray(c.schedules) ? c.schedules.length : 0}</td>
+                    <td>${getStatusText(c.status)}</td>
+                    <td>
+                        ${
+                            String(c.status).toLowerCase() === "pending"
+                            ? `<button class="btn btn-success" onclick="approveClass(${c.id})">Duyệt</button>
+                               <button class="btn btn-danger" onclick="rejectClass(${c.id})">Từ chối</button>`
+                            : `<button class="btn btn-info" onclick="viewSchedule(${c.id})">Xem lịch</button>`
+                        }
+                    </td>
+                </tr>`;
+        }).join("");
 
     } catch (err) {
-        console.error("❌ loadClasses error:", err);
+        console.error("❌ Load classes error:", err);
         tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:red">Lỗi tải dữ liệu</td></tr>`;
     }
 }
@@ -159,46 +174,43 @@ function searchClasses() {
     loadClasses();
 }
 
-// ====================== APPROVE CLASS ======================
+// ====================== APPROVE CLASS OPEN MODAL ======================
 window.approveClass = async function (id) {
     try {
-        const res = await fetch(`/api/classes/${id}`, {
+        const res = await fetch(`/api/admin/classes/${id}`, {
             headers: getAuthHeadersLocal()
         });
         const classData = await res.json();
 
         window.currentClassId = id;
 
-        document.getElementById("scheduleClassName").textContent = classData.className;
-        document.getElementById("scheduleSubject").textContent = subjectLabel(classData.subject);
-        document.getElementById("scheduleTeacher").textContent = classData.teacher?.fullName || "Chưa phân công";
+        document.getElementById("scheduleClassName").textContent = classData.className || "-";
+        document.getElementById("scheduleSubject").textContent   = subjectLabel(classData.subject);
+        document.getElementById("scheduleTeacher").textContent   = classData.teacher?.fullName || "Chưa phân công";
 
         await loadSchedulesForClass(id);
-
         openScheduleModal();
 
     } catch (err) {
         console.error("❌ approveClass error:", err);
-        alert("Không thể mở modal duyệt lớp");
+        alert("Không thể mở modal duyệt lớp!");
     }
 };
 
 // ====================== VIEW SCHEDULE ======================
 window.viewSchedule = async function (id) {
     try {
-        const res = await fetch(`/api/classes/${id}`, {
+        const res = await fetch(`/api/admin/classes/${id}`, {
             headers: getAuthHeadersLocal()
         });
         const classData = await res.json();
 
-        window.currentClassId = id;
-
-        document.getElementById("viewClassName").textContent = classData.className;
+        document.getElementById("viewClassName").textContent = classData.className || "-";
         document.getElementById("viewClassSubject").textContent = subjectLabel(classData.subject);
         document.getElementById("viewClassTeacher").textContent = classData.teacher?.fullName || "Chưa phân công";
 
         const box = document.getElementById("viewSchedules");
-        const schedules = classData.schedules ?? [];
+        const schedules = Array.isArray(classData.schedules) ? classData.schedules : [];
 
         if (!schedules.length) {
             box.innerHTML = `<div class="empty-state">Chưa có lịch học</div>`;
@@ -206,7 +218,7 @@ window.viewSchedule = async function (id) {
             box.innerHTML = schedules.map(s => `
                 <div class="schedule-item">
                     <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
-                    <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
+                    <div class="schedule-time">${escapeHtml(s.startTime)} - ${escapeHtml(s.endTime)}</div>
                 </div>
             `).join("");
         }
@@ -215,55 +227,56 @@ window.viewSchedule = async function (id) {
 
     } catch (err) {
         console.error("❌ viewSchedule error:", err);
-        alert("Lỗi tải lịch");
+        alert("Không thể tải lịch học!");
     }
 };
 
-// ====================== LOAD SCHEDULES FOR MODAL ======================
+// ====================== LOAD SCHEDULES FOR CLASS ======================
 async function loadSchedulesForClass(classId) {
     const box = document.getElementById("addedSchedules");
     box.innerHTML = `<div class="empty-state">Đang tải...</div>`;
 
     try {
-        const res = await fetch(`/api/classes/${classId}`, {
+        const res = await fetch(`/api/admin/classes/${classId}`, {
             headers: getAuthHeadersLocal()
         });
-
         const classData = await res.json();
-        const schedules = classData.schedules ?? [];
+
+        const schedules = Array.isArray(classData.schedules) ? classData.schedules : [];
 
         if (!schedules.length) {
-            box.innerHTML = `<div class="empty-state">Chưa có lịch học nào</div>`;
+            box.innerHTML = `<div class="empty-state">Chưa có lịch học nào được thêm</div>`;
+            document.getElementById("saveAllBtn").disabled = false;
             return;
         }
 
         box.innerHTML = schedules.map(s => `
             <div class="schedule-item">
                 <div class="schedule-day">${vietnameseDay(s.dayOfWeek)}</div>
-                <div class="schedule-time">${s.startTime} - ${s.endTime}</div>
+                <div class="schedule-time">${escapeHtml(s.startTime)} - ${escapeHtml(s.endTime)}</div>
             </div>
         `).join("");
 
-        // 🔥 Bật nút lưu lịch học
         document.getElementById("saveAllBtn").disabled = false;
 
     } catch (err) {
         console.error("❌ loadSchedules error:", err);
+        box.innerHTML = `<div class="empty-state" style="color:red">Lỗi tải dữ liệu</div>`;
     }
 }
-
 
 // ====================== REJECT CLASS ======================
 window.rejectClass = async function (id) {
     const reason = prompt("Nhập lý do từ chối:");
-    if (reason == null) return;
-
+    if (reason === null) return;
     try {
         await TMS_API.Classes.rejectAdmin(id, reason);
         alert("Đã từ chối!");
-        loadClasses();
+        await loadStats();
+        await loadClasses();
     } catch (err) {
-        alert("Lỗi từ chối");
+        console.error("❌ rejectClass error:", err);
+        alert("Lỗi từ chối!");
     }
 };
 
@@ -285,23 +298,22 @@ if (createClassForm) {
             alert("Tạo lớp thành công!");
             closeModal("createClassModal");
 
+            await loadStats();
             await loadClasses();
 
-            const classObj = created.data ?? created; // Tự động lấy đúng format
+            const obj = created.data ?? created;
+            window.currentClassId = obj.id;
 
-            window.currentClassId = classObj.id;
+            document.getElementById("scheduleClassName").textContent = obj.className;
+            document.getElementById("scheduleSubject").textContent = subjectLabel(obj.subject);
+            document.getElementById("scheduleTeacher").textContent = "Chưa phân công";
 
-            document.getElementById("scheduleClassName").textContent = classObj.className;
-            document.getElementById("scheduleSubject").textContent = subjectLabel(classObj.subject);
-            document.getElementById("scheduleTeacher").textContent = classObj.teacher?.fullName || "Chưa phân công";
-
-
-            await loadSchedulesForClass(window.currentClassId);
+            await loadSchedulesForClass(obj.id);
             openScheduleModal();
 
         } catch (err) {
             console.error("❌ create class error:", err);
-            alert("Lỗi tạo lớp");
+            alert("Lỗi tạo lớp!");
         }
     });
 }
@@ -313,7 +325,7 @@ if (createScheduleForm) {
         e.preventDefault();
 
         if (!window.currentClassId) {
-            alert("Lỗi: không có classId");
+            alert("Không có classId");
             return;
         }
 
@@ -330,29 +342,33 @@ if (createScheduleForm) {
                 body: JSON.stringify(payload)
             });
 
-            if (!res.ok) throw new Error("Lỗi tạo lịch");
+            if (!res.ok) throw new Error(await res.text());
 
             await loadSchedulesForClass(window.currentClassId);
-
         } catch (err) {
             console.error("❌ create schedule error:", err);
-            alert("Lỗi tạo lịch");
+            alert("Lỗi tạo lịch học!");
         }
     });
 }
 
-// ====================== APPROVE CLASS FINAL ======================
+// ====================== APPROVE CLASS ======================
 window.saveAllSchedules = async function () {
     try {
         await TMS_API.Classes.approveAdmin(window.currentClassId);
         alert("Lớp đã được duyệt!");
         closeModal("createScheduleModal");
-        loadClasses();
+
+        await loadStats();
+        await loadClasses();
+
     } catch (err) {
-        alert("Lỗi duyệt lớp");
+        console.error("❌ saveAllSchedules error:", err);
+        alert("Không thể duyệt lớp!");
     }
 };
 
+// ============= MODAL FUNCTIONS =============
 function closeModal(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
@@ -363,8 +379,7 @@ window.openCreateClassModal = function () {
     if (modal) modal.style.display = "flex";
 };
 
-window.openScheduleModal = function() {
+window.openScheduleModal = function () {
     const modal = document.getElementById("createScheduleModal");
     if (modal) modal.style.display = "flex";
 };
-

@@ -21,3 +21,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByRoleIgnoreCase(String role);
     long countByRoleIgnoreCaseAndStatusIgnoreCase(String role, String status);
 }
+
