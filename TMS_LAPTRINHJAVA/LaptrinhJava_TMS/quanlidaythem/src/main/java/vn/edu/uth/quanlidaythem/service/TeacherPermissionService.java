@@ -23,84 +23,102 @@ public class TeacherPermissionService {
     private final SubjectRepository subjectRepo;
     private final UserRepository userRepo;
 
-    public TeacherPermissionService(TeacherSubjectPermissionRepository permRepo,
-                                    SubjectRepository subjectRepo,
-                                    UserRepository userRepo) {
+    public TeacherPermissionService(
+            TeacherSubjectPermissionRepository permRepo,
+            SubjectRepository subjectRepo,
+            UserRepository userRepo
+    ) {
         this.permRepo = permRepo;
         this.subjectRepo = subjectRepo;
         this.userRepo = userRepo;
     }
 
-    // ====== Teacher side ======
+    // ====== Lấy danh sách môn gv đã đăng ký ======
     @Transactional(readOnly = true)
     public List<TeacherPermissionView> myPermissions(String username) {
-        Long teacherId = userRepo.findByUsername(username)
-                .map(User::getId).orElseThrow(() -> notFound("Không tìm thấy người dùng: " + username));
-        return permRepo.findByTeacherId(teacherId).stream()
+
+        User teacher = userRepo.findByUsername(username)
+                .orElseThrow(() -> notFound("Không tìm thấy giáo viên: " + username));
+
+        return permRepo.findByTeacher_Id(teacher.getId())
+                .stream()
                 .map(this::toView)
                 .collect(Collectors.toList());
     }
 
-    /** GV gửi yêu cầu đăng ký 1 môn (active=false nếu chưa có) */
+    // ====== Giáo viên gửi yêu cầu đăng ký môn ======
     @Transactional
     public TeacherPermissionView teacherRequest(String username, Long subjectId) {
-        User t = userRepo.findByUsername(username)
-                .orElseThrow(() -> notFound("Không tìm thấy người dùng: " + username));
-        Subject s = subjectRepo.findById(subjectId)
+
+        User teacher = userRepo.findByUsername(username)
+                .orElseThrow(() -> notFound("Không tìm thấy giáo viên: " + username));
+
+        Subject subject = subjectRepo.findById(subjectId)
                 .orElseThrow(() -> notFound("Không tìm thấy môn: " + subjectId));
 
-        if (permRepo.existsByTeacherIdAndSubject_IdAndActiveTrue(t.getId(), s.getId())) {
-            throw badRequest("Bạn đã được cấp quyền môn này.");
+        // Ngăn đăng ký trùng sau khi đã được duyệt
+        if (permRepo.existsByTeacher_IdAndSubject_IdAndActiveTrue(teacher.getId(), subject.getId())) {
+            throw badRequest("Bạn đã được duyệt môn này rồi.");
         }
 
-        TeacherSubjectPermission p = permRepo.findByTeacherId(t.getId()).stream()
-                .filter(x -> x.getSubject().getId().equals(s.getId()))
+        // Kiểm tra bản ghi pending có chưa
+        TeacherSubjectPermission p = permRepo.findByTeacher_Id(teacher.getId())
+                .stream()
+                .filter(x -> x.getSubject().getId().equals(subject.getId()))
                 .findFirst()
                 .orElseGet(() -> {
                     TeacherSubjectPermission np = new TeacherSubjectPermission();
-                    np.setTeacherId(t.getId());
-                    np.setSubject(s);
-                    np.setActive(false); // pending
+                    np.setTeacher(teacher);      // DÙNG USER — ĐÚNG CHUẨN
+                    np.setSubject(subject);
+                    np.setActive(false);
                     return np;
                 });
 
         p = permRepo.save(p);
-        return toViewWithTeacher(p, t);
+        return toViewWithTeacher(p, teacher);
     }
 
-    /** GV hủy yêu cầu pending */
+    // ====== Giáo viên hủy yêu cầu ======
     @Transactional
     public void teacherCancel(String username, Long permissionId) {
-        User t = userRepo.findByUsername(username)
-                .orElseThrow(() -> notFound("Không tìm thấy người dùng: " + username));
+
+        User teacher = userRepo.findByUsername(username)
+                .orElseThrow(() -> notFound("Không tìm thấy giáo viên: " + username));
+
         TeacherSubjectPermission p = permRepo.findById(permissionId)
                 .orElseThrow(() -> notFound("Không tìm thấy quyền môn: " + permissionId));
 
-        if (!p.getTeacherId().equals(t.getId())) {
+        if (!p.getTeacher().getId().equals(teacher.getId())) {
             throw forbidden("Không thể hủy yêu cầu của người khác.");
         }
+
         if (p.isActive()) {
             throw badRequest("Quyền đã được duyệt, không thể hủy.");
         }
+
         permRepo.deleteById(permissionId);
     }
 
-    // ====== mapping ======
+    // ====== Mapping DTO ======
     private TeacherPermissionView toView(TeacherSubjectPermission p) {
         TeacherPermissionView v = new TeacherPermissionView();
+
         v.id = p.getId();
-        v.teacherId = p.getTeacherId();
+        v.teacherId = p.getTeacher().getId();
+        v.active = p.isActive();
+
         if (p.getSubject() != null) {
             v.subjectId = p.getSubject().getId();
             v.subjectCode = p.getSubject().getCode();
             v.subjectName = p.getSubject().getName();
             v.subjectGrade = p.getSubject().getGrade();
         }
-        v.active = p.isActive();
-        userRepo.findById(p.getTeacherId()).ifPresent(u -> {
+
+        userRepo.findById(v.teacherId).ifPresent(u -> {
             v.teacherName = u.getFullName();
             v.teacherEmail = u.getEmail();
         });
+
         return v;
     }
 
@@ -111,7 +129,7 @@ public class TeacherPermissionService {
         return v;
     }
 
-    // ====== helpers ======
+    // ====== Helpers ======
     private ResponseStatusException notFound(String m)   { return new ResponseStatusException(HttpStatus.NOT_FOUND, m); }
     private ResponseStatusException badRequest(String m) { return new ResponseStatusException(HttpStatus.BAD_REQUEST, m); }
     private ResponseStatusException forbidden(String m)  { return new ResponseStatusException(HttpStatus.FORBIDDEN, m); }

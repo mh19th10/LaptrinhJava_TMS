@@ -127,7 +127,7 @@ public class AdminApprovalService {
     // ========== B) Quyền MÔN ==========
     @Transactional(readOnly = true)
     public List<TeacherSubjectPermission> listPermissionsByTeacher(Long teacherId) {
-        return permRepo.findByTeacherId(teacherId);
+        return permRepo.findByTeacher_Id(teacherId);
     }
 
     @Transactional

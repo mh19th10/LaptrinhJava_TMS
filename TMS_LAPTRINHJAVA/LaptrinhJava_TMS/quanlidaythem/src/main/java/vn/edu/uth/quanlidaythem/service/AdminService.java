@@ -8,8 +8,13 @@ import org.springframework.data.domain.Pageable;
 
 import vn.edu.uth.quanlidaythem.model.ClassEntity;
 import vn.edu.uth.quanlidaythem.model.StudentEntity;
+import vn.edu.uth.quanlidaythem.model.TeacherEntity;
 
 public interface AdminService {
+
+    List<TeacherEntity> getAllTeachers();
+    TeacherEntity updateTeacherStatus(Long teacherId, String status);
+
     
     // QUẢN LÝ LỚP HỌC
     Page<ClassEntity> getAllClasses(Pageable pageable, String status, String type);

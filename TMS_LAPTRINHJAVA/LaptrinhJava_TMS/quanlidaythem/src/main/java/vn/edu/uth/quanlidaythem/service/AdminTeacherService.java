@@ -103,7 +103,7 @@ public class AdminTeacherService {
             }
             if (!isTeacher) continue;
 
-            var perms = permRepo.findByTeacherId(u.getId());
+            var perms = permRepo.findByTeacher_Id(u.getId());
             var view  = mapToView(u, perms);
 
             if (!s.isEmpty() && !s.equals(view.status)) continue;
@@ -132,7 +132,7 @@ public class AdminTeacherService {
     public TeacherAdminView get(Long id) {
         User u = userRepo.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + id));
-        return mapToView(u, permRepo.findByTeacherId(id));
+        return mapToView(u, permRepo.findByTeacher_Id(id));
     }
 
     @Transactional
@@ -142,24 +142,33 @@ public class AdminTeacherService {
         permRepo.updateActiveByTeacherId(teacherId, true);
         // (nếu muốn) clear note từng bản ghi:
         // permRepo.findByTeacherId(teacherId).forEach(p -> { p.setNote(null); permRepo.save(p); });
-        return mapToView(u, permRepo.findByTeacherId(teacherId));
+        return mapToView(u, permRepo.findByTeacher_Id(teacherId));
     }
 
     @Transactional
     public TeacherAdminView reject(Long teacherId, String reason) {
+
         User u = userRepo.findById(teacherId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
-        // set active=false; ghi note cho các perm đang chờ
-        var list = permRepo.findByTeacherId(teacherId);
-        for (var p : list) {
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Không tìm thấy giáo viên: " + teacherId));
+
+        List<TeacherSubjectPermission> list = permRepo.findByTeacher_Id(teacherId);
+
+        for (TeacherSubjectPermission p : list) {
             p.setActive(false);
+
             if (p.getNote() == null || p.getNote().isBlank()) {
-                p.setNote(reason == null || reason.isBlank() ? "Từ chối bởi admin" : reason);
+                p.setNote((reason == null || reason.isBlank()) 
+                    ? "Từ chối bởi admin" 
+                    : reason);
             }
+
             permRepo.save(p);
         }
+
         return mapToView(u, list);
     }
+
 
     @Transactional
     public TeacherAdminView suspend(Long teacherId, String reason) {
@@ -167,6 +176,6 @@ public class AdminTeacherService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
         // tắt toàn bộ (không buộc phải có note)
         permRepo.updateActiveByTeacherId(teacherId, false);
-        return mapToView(u, permRepo.findByTeacherId(teacherId));
+        return mapToView(u, permRepo.findByTeacher_Id(teacherId));
     }
 }

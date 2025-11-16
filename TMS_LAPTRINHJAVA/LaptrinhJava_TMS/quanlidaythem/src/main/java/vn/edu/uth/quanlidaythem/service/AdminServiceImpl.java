@@ -14,14 +14,34 @@ import org.springframework.transaction.annotation.Transactional;
 
 import vn.edu.uth.quanlidaythem.model.ClassEntity;
 import vn.edu.uth.quanlidaythem.model.StudentEntity;
+import vn.edu.uth.quanlidaythem.model.TeacherEntity;
 import vn.edu.uth.quanlidaythem.repository.ClassRepository;
 import vn.edu.uth.quanlidaythem.repository.StudentRepository;
+import vn.edu.uth.quanlidaythem.repository.TeacherRepository;
 import vn.edu.uth.quanlidaythem.repository.TeacherSubjectPermissionRepository;
 import vn.edu.uth.quanlidaythem.repository.UserRepository;
 
 @Service
 @Transactional
 public class AdminServiceImpl implements AdminService {
+
+    @Autowired
+    private TeacherRepository teacherRepository;
+
+    @Override
+    public List<TeacherEntity> getAllTeachers() {
+        return teacherRepository.findAll();
+    }
+
+    @Override
+    public TeacherEntity updateTeacherStatus(Long teacherId, String status) {
+        TeacherEntity t = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
+
+        t.setStatus(status);
+        return teacherRepository.save(t);
+    }
+
 
     @Autowired
     private TeacherSubjectPermissionRepository permissionRepo;
@@ -58,22 +78,21 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public ClassEntity approveClass(Long classId) {
         ClassEntity classEntity = getClassById(classId);
-        
-        if (classEntity.getTeacher() == null) {
-            throw new RuntimeException("Lớp học chưa có giáo viên, không thể duyệt!");
-        }
-        
-        if (!"approved".equalsIgnoreCase(classEntity.getTeacher().getStatus())) {
-            throw new RuntimeException("Giáo viên chưa được phê duyệt!");
-        }
-        
+
+        // Bắt buộc phải có lịch trước khi duyệt (nếu muốn thay đổi, comment dòng này)
         if (classEntity.getSchedules() == null || classEntity.getSchedules().isEmpty()) {
             throw new RuntimeException("Lớp học chưa có lịch học, không thể duyệt!");
         }
-        
+
+        // Nếu muốn vẫn yêu cầu giáo viên, uncomment:
+        // if (classEntity.getTeacher() == null) {
+        //     throw new RuntimeException("Lớp học chưa có giáo viên, không thể duyệt!");
+        // }
+
         classEntity.setStatus("approved");
         return classRepository.save(classEntity);
     }
+
 
     @Override
     public ClassEntity rejectClass(Long classId, String reason) {

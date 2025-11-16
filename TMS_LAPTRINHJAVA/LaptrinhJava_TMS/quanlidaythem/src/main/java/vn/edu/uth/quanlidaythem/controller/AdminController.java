@@ -26,6 +26,7 @@ import vn.edu.uth.quanlidaythem.dto.DTOMapper;
 import vn.edu.uth.quanlidaythem.dto.StudentDTO;
 import vn.edu.uth.quanlidaythem.model.ClassEntity;
 import vn.edu.uth.quanlidaythem.model.StudentEntity;
+import vn.edu.uth.quanlidaythem.model.TeacherEntity;
 import vn.edu.uth.quanlidaythem.service.AdminService;
 
 /**
@@ -39,6 +40,31 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+
+    // ============================================
+    // QUẢN LÝ GIÁO VIÊN
+    // ============================================
+
+    @GetMapping("/teachers/all")
+    public ResponseEntity<List<TeacherEntity>> getAllTeachers() {
+        return ResponseEntity.ok(adminService.getAllTeachers());
+    }
+
+
+    @PutMapping("/teachers/{id}/status")
+    public ResponseEntity<Map<String, Object>> updateTeacherStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+
+        TeacherEntity updated = adminService.updateTeacherStatus(id, status);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("success", true);
+        res.put("teacher", updated);
+
+        return ResponseEntity.ok(res);
+    }
+
 
     // ============================================
     // QUẢN LÝ LỚP HỌC

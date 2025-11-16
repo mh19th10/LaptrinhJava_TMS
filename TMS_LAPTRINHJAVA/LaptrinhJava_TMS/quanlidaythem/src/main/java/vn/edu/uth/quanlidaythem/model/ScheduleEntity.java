@@ -13,6 +13,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+
 @Entity
 @Table(name = "schedules")
 public class ScheduleEntity {
@@ -35,6 +36,7 @@ public class ScheduleEntity {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private LocalTime endTime;
+
 
     public ScheduleEntity() {}
 

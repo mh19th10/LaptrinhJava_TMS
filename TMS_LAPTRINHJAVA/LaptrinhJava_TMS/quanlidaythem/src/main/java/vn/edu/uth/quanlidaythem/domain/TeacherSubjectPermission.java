@@ -17,29 +17,34 @@ public class TeacherSubjectPermission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="teacher_id", nullable = false)
-    private Long teacherId;
+    /** FK -> USER (role=TEACHER) */
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "teacher_id")
+    private User teacher;
 
+    /** FK -> SUBJECT */
     @ManyToOne(optional = false)
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
     @Column(nullable = false)
-    private boolean active = false;   // được duyệt hay chưa
+    private boolean active = false;
 
     @Column(length = 200)
-    private String note;              // lý do từ chối (nếu có) => REJECTED
+    private String note;
 
-    // ===== getters/setters =====
+    // Getters & Setters
     public Long getId() { return id; }
-    public Long getTeacherId() { return teacherId; }
-    public Subject getSubject() { return subject; }
-    public boolean isActive() { return active; }
-    public String getNote() { return note; }
 
-    public void setId(Long id) { this.id = id; }
-    public void setTeacherId(Long teacherId) { this.teacherId = teacherId; }
+    public User getTeacher() { return teacher; }
+    public void setTeacher(User teacher) { this.teacher = teacher; }
+
+    public Subject getSubject() { return subject; }
     public void setSubject(Subject subject) { this.subject = subject; }
+
+    public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 }
