@@ -1019,6 +1019,45 @@
     </div>
   </div>
 
+  <!-- Modal View Students -->
+  <div id="viewStudentsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">👥 Danh sách học sinh</h2>
+        <button class="close" onclick="closeModal('viewStudentsModal')">&times;</button>
+      </div>
+
+      <div class="class-info">
+        <h4>Thông tin lớp học</h4>
+        <div class="class-details">
+          <div class="detail-item">
+            <span class="detail-label">Lớp:</span>
+            <span class="detail-value" id="viewStudentsClassName">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Môn học:</span>
+            <span class="detail-value" id="viewStudentsClassSubject">-</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Loại lớp:</span>
+            <span class="detail-value" id="viewStudentsClassType">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="schedule-list">
+        <h3>Danh sách học sinh đã đăng ký</h3>
+        <div id="viewStudentsList">
+          <div class="empty-state">Đang tải...</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('viewStudentsModal')">Đóng</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     // show/hide compliance notes when user selects type in create modal

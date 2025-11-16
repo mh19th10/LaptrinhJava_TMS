@@ -39,7 +39,7 @@ async function loadTeachers() {
             <tr>
                 <td>${(t.fullName || t.name || "-")}</td>
                 <td>${t.email ?? '-'}</td>
-                <td>${subjectLabel(t.mainSubject)}</td>
+                <td>${formatSubjects(t.subjects)}</td>
                 <td>-</td>
                 <td><span class="badge badge-pending">Chờ duyệt</span></td>
                 <td>
@@ -54,10 +54,12 @@ async function loadTeachers() {
             <tr>
                 <td>${(t.fullName || t.name || "-")}</td>
                 <td>${t.email ?? '-'}</td>
-                <td>${subjectLabel(t.mainSubject)}</td>
+                <td>${formatSubjects(t.subjects)}</td>
                 <td>${t.classCount ?? 0}</td>
                 <td><span class="badge badge-approved">Đã duyệt</span></td>
-                <td>-</td>
+                <td>
+                    <button class="btn btn-danger" onclick="revokeTeacher(${t.id})">Hủy quyền</button>
+                </td>
             </tr>
         `).join("") : `<tr><td colspan="6" style="text-align:center;">Không có giáo viên</td></tr>`;
 
@@ -66,7 +68,7 @@ async function loadTeachers() {
             <tr>
                 <td>${(t.fullName || t.name || "-")}</td>
                 <td>${t.email ?? '-'}</td>
-                <td>${subjectLabel(t.mainSubject)}</td>
+                <td>${formatSubjects(t.subjects)}</td>
                 <td>${t.rejectReason ?? "Không có"}</td>
                 <td><span class="badge badge-rejected">Từ chối</span></td>
                 <td>-</td>
@@ -96,6 +98,17 @@ async function rejectTeacher(id) {
     loadTeachers();
 }
 
+async function revokeTeacher(id) {
+    if (!confirm("Bạn có chắc muốn hủy quyền đã được cấp cho giáo viên này? Giáo viên có thể đăng ký lại sau nếu muốn.")) return;
+    try {
+        await TMS_API.Teachers.revoke(id);
+        alert("Đã hủy quyền thành công.");
+        loadTeachers();
+    } catch (err) {
+        alert("Lỗi: " + (err.message || "Không thể hủy quyền."));
+    }
+}
+
 // ====================== HELPERS ======================
 
 function subjectLabel(key) {
@@ -105,6 +118,19 @@ function subjectLabel(key) {
         literature: "Ngữ văn", history: "Lịch sử", geography: "Địa lý"
     };
     return map[key] || key;
+}
+
+// Hiển thị danh sách các môn đã đăng ký
+function formatSubjects(subjects) {
+    if (!subjects || !Array.isArray(subjects) || subjects.length === 0) {
+        return "-";
+    }
+    // Hiển thị danh sách môn với trạng thái
+    return subjects.map(s => {
+        const status = s.active ? "✓" : "⏳";
+        const name = s.name || s.code || `Môn ${s.subjectId}`;
+        return `${status} ${name}`;
+    }).join(", ");
 }
 
 function switchTab(tab) {

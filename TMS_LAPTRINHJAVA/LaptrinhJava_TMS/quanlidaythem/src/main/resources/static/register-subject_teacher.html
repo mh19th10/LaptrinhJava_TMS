@@ -147,7 +147,11 @@
           if (p) {
             if (p.active) {
               statusHtml = `<span class="badge badge-approved">Đang hoạt động</span>`;
-              actionHtml = `<div class="btn-group"><button class="btn btn-outline" disabled>Đã cấp quyền</button></div>`;
+              actionHtml = `
+                <div class="btn-group">
+                  <button class="btn btn-outline" disabled>Đã cấp quyền</button>
+                  <button class="btn btn-reject" data-act="revoke" data-pid="${p.id}" title="Hủy quyền đã được cấp">Hủy quyền</button>
+                </div>`;
             } else {
               statusHtml = `<span class="badge badge-active">Chờ duyệt</span>`;
               actionHtml = `
@@ -196,9 +200,15 @@
             alert('Đã gửi yêu cầu cấp quyền môn. Vui lòng chờ admin duyệt.');
             await loadAll();
           } else if (btn.dataset.act === 'revoke') {
-            if (!confirm('Hủy yêu cầu cho môn này?')) return;
-            await deletePerm(+btn.dataset.pid);
-            alert('Đã hủy yêu cầu.');
+            const pid = +btn.dataset.pid;
+            const perm = MYPERMS.find(p => p.id === pid);
+            const isActive = perm && perm.active;
+            const message = isActive 
+              ? 'Bạn có chắc muốn hủy quyền đã được cấp cho môn này? Bạn có thể đăng ký lại sau nếu muốn.'
+              : 'Hủy yêu cầu cấp quyền cho môn này?';
+            if (!confirm(message)) return;
+            await deletePerm(pid);
+            alert(isActive ? 'Đã hủy quyền. Bạn có thể đăng ký lại môn này sau.' : 'Đã hủy yêu cầu.');
             await loadAll();
           }
         } catch (err) {

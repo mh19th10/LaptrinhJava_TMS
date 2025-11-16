@@ -33,8 +33,7 @@
       </div>
       <nav class="nav">
         <a href="dashboard_teacher.html">🏠 Trang chủ</a>
-        <a href="register-subject_teacher.html">📚 Đăng ký môn</a>
-        <a href="register-class_teacher_new.html" class="active">🗂️ Đăng ký mở lớp</a>
+        <a href="register-class_teacher.html" class="active">🗂️ Đăng ký mở lớp</a>
         <a href="report_teacher.html">📄 Báo cáo</a>
         <a href="profile_teacher.html">👤 Hồ sơ</a>
         <a href="login.html" id="logoutBtn">🚪 Đăng xuất</a>
@@ -181,46 +180,246 @@
       });
     }
 
+    // Danh sách tất cả các môn học (hardcoded giống trang admin)
+    const ALL_SUBJECTS = [
+      { key: 'math', label: 'Toán học' },
+      { key: 'physics', label: 'Vật lý' },
+      { key: 'chemistry', label: 'Hóa học' },
+      { key: 'english', label: 'Tiếng Anh' },
+      { key: 'biology', label: 'Sinh học' },
+      { key: 'literature', label: 'Ngữ văn' },
+      { key: 'history', label: 'Lịch sử' },
+      { key: 'geography', label: 'Địa lý' },
+      { key: 'information technology', label: 'Tin Học' }
+    ];
+
+    // Map subject key -> subjectId (từ database)
+    const SUBJECT_KEY_TO_ID = {};
+
     async function loadSubjects(){
       const sel = document.getElementById('selSubject');
       sel.innerHTML = `<option value="">Đang tải...</option>`;
       try {
+        // Load subjects từ API để map key -> id
         const data = await fetchJSON(API_SUBJECTS);
         const arr = Array.isArray(data) ? data : (data?.content || []);
         SUBJECTS = arr;
         SUBJECT_NAME_BY_ID = {};
-        sel.innerHTML = `<option value="">-- Chọn môn --</option>` + 
-          arr.map(s => {
+        SUBJECT_KEY_TO_ID = {}; // Reset map
+        
+        // Tạo map subject code/key -> subjectId
+        for (const s of arr) {
+          if (s.id) {
             SUBJECT_NAME_BY_ID[Number(s.id)] = s.name || s.subjectName || ('Môn ' + s.id);
-            return `<option value="${s.id}">${s.code || ''} - ${s.name || ''} ${s.grade?('('+s.grade+')'):''}</option>`;
+            const codeLower = (s.code || '').toLowerCase();
+            const nameLower = (s.name || '').toLowerCase();
+            
+            if (codeLower || nameLower) {
+              // Match với subject key bằng nhiều cách
+              for (const subj of ALL_SUBJECTS) {
+                // Match theo code: "TOAN12", "TOAN", "math" -> "math"
+                if (codeLower) {
+                  if (codeLower === subj.key || 
+                      codeLower.includes(subj.key) || 
+                      subj.key.includes(codeLower)) {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  // Match các biến thể code: TOAN, TOAN12, TOANHOC -> math
+                  if (codeLower.includes('toan') && subj.key === 'math') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('ly') && subj.key === 'physics') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('hoa') && subj.key === 'chemistry') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('anh') && subj.key === 'english') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('sinh') && subj.key === 'biology') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('van') && subj.key === 'literature') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('su') && subj.key === 'history') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if (codeLower.includes('dia') && subj.key === 'geography') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                  if ((codeLower.includes('tin') || codeLower.includes('it')) && subj.key === 'information technology') {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                }
+                
+                // Match theo name: "Toán học", "Toán", "Toán 12" -> "math"
+                if (nameLower) {
+                  const labelLower = subj.label.toLowerCase();
+                  // Match chính xác hoặc chứa từ khóa chính
+                  if (nameLower === labelLower || 
+                      nameLower.includes(labelLower) || 
+                      labelLower.includes(nameLower) ||
+                      // Match các từ khóa: "toán" trong "toán học", "toán 12", etc.
+                      (nameLower.includes('toán') && subj.key === 'math') ||
+                      (nameLower.includes('vật lý') && subj.key === 'physics') ||
+                      (nameLower.includes('hóa học') && subj.key === 'chemistry') ||
+                      (nameLower.includes('tiếng anh') && subj.key === 'english') ||
+                      (nameLower.includes('sinh học') && subj.key === 'biology') ||
+                      (nameLower.includes('ngữ văn') && subj.key === 'literature') ||
+                      (nameLower.includes('lịch sử') && subj.key === 'history') ||
+                      (nameLower.includes('địa lý') && subj.key === 'geography') ||
+                      ((nameLower.includes('tin học') || nameLower.includes('tin')) && subj.key === 'information technology')) {
+                    SUBJECT_KEY_TO_ID[subj.key] = Number(s.id);
+                  }
+                }
+              }
+              
+              // Lưu theo code gốc nếu chưa có
+              if (codeLower && !SUBJECT_KEY_TO_ID[codeLower]) {
+                SUBJECT_KEY_TO_ID[codeLower] = Number(s.id);
+              }
+            }
+          }
+        }
+
+        // Tạo dropdown với tất cả các môn (hardcoded giống admin)
+        sel.innerHTML = `<option value="">-- Chọn môn --</option>` + 
+          ALL_SUBJECTS.map(subj => {
+            const subjectId = SUBJECT_KEY_TO_ID[subj.key] || '';
+            // Lưu mapping trong data attribute
+            return `<option value="${subj.key}" data-subject-id="${subjectId}">${subj.label}</option>`;
           }).join('');
+        
+        // Debug: log mapping để kiểm tra
+        console.log('Subject mapping:', SUBJECT_KEY_TO_ID);
       } catch (e) {
-        sel.innerHTML = `<option value="">(Lỗi tải danh sách môn)</option>`;
-        console.error(e);
+        console.error('Load subjects error:', e);
+        // Fallback: vẫn hiển thị hardcoded list nếu API lỗi
+        sel.innerHTML = `<option value="">-- Chọn môn --</option>` + 
+          ALL_SUBJECTS.map(subj => 
+            `<option value="${subj.key}" data-subject-id="">${subj.label}</option>`
+          ).join('');
       }
     }
 
     function buildPayload(){
+      const selSubject = document.getElementById('selSubject');
+      const selectedOption = selSubject.options[selSubject.selectedIndex];
+      const subjectKey = selSubject.value;
+      
+      if (!subjectKey) {
+        return {
+          classId: null,
+          className: document.getElementById('inpName').value.trim(),
+          subjectId: null,
+          capacity: toNum(document.getElementById('inpCapacity').value),
+          mode: document.getElementById('selMode').value,
+          startDate: document.getElementById('inpStartDate').value || null,
+          location: document.getElementById('inpLocation').value.trim() || null,
+          schedule: document.getElementById('inpSchedule').value.trim() || null,
+          note: document.getElementById('inpNote').value.trim() || null
+        };
+      }
+      
+      // Lấy subjectId từ data attribute (ưu tiên)
+      let subjectId = null;
+      if (selectedOption) {
+        const dataId = selectedOption.getAttribute('data-subject-id');
+        if (dataId && dataId !== '') {
+          subjectId = Number(dataId);
+        }
+      }
+      
+      // Nếu không có từ data attribute, thử lấy từ SUBJECT_KEY_TO_ID
+      if (!subjectId && subjectKey) {
+        subjectId = SUBJECT_KEY_TO_ID[subjectKey] || null;
+      }
+      
+      // Nếu vẫn không có, thử tìm trong SUBJECTS bằng key
+      if (!subjectId && subjectKey) {
+        // Tìm subject có name/code match với subjectKey
+        for (const s of SUBJECTS) {
+          const codeLower = (s.code || '').toLowerCase();
+          const nameLower = (s.name || '').toLowerCase();
+          const keyLower = subjectKey.toLowerCase();
+          
+          // Match trực tiếp
+          if (codeLower === keyLower || nameLower === keyLower) {
+            subjectId = Number(s.id);
+            break;
+          }
+          
+          // Match theo từ khóa
+          if (keyLower === 'math' && (codeLower.includes('toan') || nameLower.includes('toán'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'physics' && (codeLower.includes('ly') || nameLower.includes('vật lý'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'chemistry' && (codeLower.includes('hoa') || nameLower.includes('hóa học'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'english' && (codeLower.includes('anh') || nameLower.includes('tiếng anh'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'biology' && (codeLower.includes('sinh') || nameLower.includes('sinh học'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'literature' && (codeLower.includes('van') || nameLower.includes('ngữ văn'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'history' && (codeLower.includes('su') || nameLower.includes('lịch sử'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'geography' && (codeLower.includes('dia') || nameLower.includes('địa lý'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+          if (keyLower === 'information technology' && (codeLower.includes('tin') || nameLower.includes('tin học'))) {
+            subjectId = Number(s.id);
+            break;
+          }
+        }
+      }
+      
+      console.log('Selected subject key:', subjectKey, '-> subjectId:', subjectId);
+      
       return {
         classId:    null, // nếu muốn đăng ký vào lớp có sẵn, set số id ở đây
         className:  document.getElementById('inpName').value.trim(),
-        subjectId:  +document.getElementById('selSubject').value || null,
+        subjectId:  subjectId ? Number(subjectId) : null,
         capacity:   toNum(document.getElementById('inpCapacity').value),
         mode:       document.getElementById('selMode').value,
         startDate:  document.getElementById('inpStartDate').value || null,
-        location:   document.getElementById('inpLocation').value.trim(),
-        schedule:   document.getElementById('inpSchedule').value.trim(),
-        note:       document.getElementById('inpNote').value.trim()
+        location:   document.getElementById('inpLocation').value.trim() || null,
+        schedule:   document.getElementById('inpSchedule').value.trim() || null,
+        note:       document.getElementById('inpNote').value.trim() || null
       };
-      function toNum(v){ const n = Number(v); return Number.isFinite(n) && n>0 ? n : null; }
     }
+    
+    function toNum(v){ const n = Number(v); return Number.isFinite(n) && n>0 ? n : null; }
 
     async function submitForm(){
       const payload = buildPayload();
 
       // Validate nhanh
       if (!payload.className) return alert('Vui lòng nhập Tên lớp');
-      if (!payload.subjectId) return alert('Vui lòng chọn Môn học');
+      const selSubject = document.getElementById('selSubject');
+      const subjectKey = selSubject.value;
+      if (!subjectKey) return alert('Vui lòng chọn Môn học');
+      if (!payload.subjectId) {
+        const selectedLabel = selSubject.options[selSubject.selectedIndex]?.text || subjectKey;
+        return alert(`Không tìm thấy môn học "${selectedLabel}" trong hệ thống. Vui lòng liên hệ admin để thêm môn học này.`);
+      }
       if (!payload.schedule)  return alert('Vui lòng nhập Lịch học');
 
       try{

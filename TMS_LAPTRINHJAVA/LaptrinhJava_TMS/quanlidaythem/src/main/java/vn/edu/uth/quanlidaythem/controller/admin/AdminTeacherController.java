@@ -57,4 +57,18 @@ public class AdminTeacherController {
         TeacherAdminView view = service.suspend(id, body != null ? body.reason : null);
         return ResponseEntity.ok(view);
     }
+
+    // Reset permission về pending (chỉ dùng cho test/development)
+    @PostMapping("/{id}/reset-pending")
+    public ResponseEntity<TeacherAdminView> resetToPending(@PathVariable Long id) {
+        TeacherAdminView view = service.resetToPending(id);
+        return ResponseEntity.ok(view);
+    }
+
+    // Hủy quyền đã được duyệt
+    @PostMapping("/{id}/revoke")
+    public ResponseEntity<TeacherAdminView> revoke(@PathVariable Long id) {
+        TeacherAdminView view = service.revoke(id);
+        return ResponseEntity.ok(view);
+    }
 }

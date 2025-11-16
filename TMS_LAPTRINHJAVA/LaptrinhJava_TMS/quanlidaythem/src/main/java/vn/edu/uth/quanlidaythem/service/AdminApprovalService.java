@@ -42,6 +42,13 @@ public class AdminApprovalService {
     }
 
     // ========== A) Đăng ký LỚP ==========
+    
+    /** Lấy danh sách đăng ký chờ duyệt (custom registration - chưa gắn lớp) */
+    @Transactional(readOnly = true)
+    public List<TeacherRegistration> listPendingCustomRegistrations() {
+        return regRepo.findByStatusAndTeachingClassIsNullOrderByIdDesc(Status.PENDING);
+    }
+    
     @Transactional
     public void approveClassRegistration(Long adminId, Long regId) {
         TeacherRegistration reg = regRepo.findById(regId)

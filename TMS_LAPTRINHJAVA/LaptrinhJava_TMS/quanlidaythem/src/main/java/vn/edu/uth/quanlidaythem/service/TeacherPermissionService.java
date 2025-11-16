@@ -47,6 +47,7 @@ public class TeacherPermissionService {
     }
 
     // ====== Giáo viên gửi yêu cầu đăng ký môn ======
+    // Cho phép đăng ký NHIỀU MÔN khác nhau
     @Transactional
     public TeacherPermissionView teacherRequest(String username, Long subjectId) {
 
@@ -56,29 +57,41 @@ public class TeacherPermissionService {
         Subject subject = subjectRepo.findById(subjectId)
                 .orElseThrow(() -> notFound("Không tìm thấy môn: " + subjectId));
 
-        // Ngăn đăng ký trùng sau khi đã được duyệt
+        // Ngăn đăng ký trùng môn đã được duyệt (active=true)
         if (permRepo.existsByTeacher_IdAndSubject_IdAndActiveTrue(teacher.getId(), subject.getId())) {
-            throw badRequest("Bạn đã được duyệt môn này rồi.");
+            throw badRequest("Bạn đã được duyệt môn này rồi. Không thể đăng ký lại.");
         }
 
-        // Kiểm tra bản ghi pending có chưa
-        TeacherSubjectPermission p = permRepo.findByTeacher_Id(teacher.getId())
+        // Kiểm tra xem môn này đã có permission pending chưa
+        TeacherSubjectPermission existingPending = permRepo.findByTeacher_Id(teacher.getId())
                 .stream()
-                .filter(x -> x.getSubject().getId().equals(subject.getId()))
+                .filter(x -> x.getSubject().getId().equals(subject.getId()) && !x.isActive())
                 .findFirst()
-                .orElseGet(() -> {
-                    TeacherSubjectPermission np = new TeacherSubjectPermission();
-                    np.setTeacher(teacher);      // DÙNG USER — ĐÚNG CHUẨN
-                    np.setSubject(subject);
-                    np.setActive(false);
-                    return np;
-                });
+                .orElse(null);
+
+        TeacherSubjectPermission p;
+        if (existingPending != null) {
+            // Nếu đã có permission pending cho môn này, tái sử dụng (reset note nếu có)
+            p = existingPending;
+            if (p.getNote() != null && !p.getNote().isBlank()) {
+                // Nếu có note (có thể là từ lần reject trước), xóa note để đặt lại trạng thái pending
+                p.setNote(null);
+            }
+        } else {
+            // Tạo permission mới cho môn này
+            // Lưu ý: Giáo viên có thể đăng ký NHIỀU MÔN khác nhau, mỗi môn sẽ có 1 permission riêng
+            p = new TeacherSubjectPermission();
+            p.setTeacher(teacher);
+            p.setSubject(subject);
+            p.setActive(false);
+            p.setNote(null);
+        }
 
         p = permRepo.save(p);
         return toViewWithTeacher(p, teacher);
     }
 
-    // ====== Giáo viên hủy yêu cầu ======
+    // ====== Giáo viên hủy yêu cầu hoặc quyền đã được duyệt ======
     @Transactional
     public void teacherCancel(String username, Long permissionId) {
 
@@ -89,13 +102,11 @@ public class TeacherPermissionService {
                 .orElseThrow(() -> notFound("Không tìm thấy quyền môn: " + permissionId));
 
         if (!p.getTeacher().getId().equals(teacher.getId())) {
-            throw forbidden("Không thể hủy yêu cầu của người khác.");
+            throw forbidden("Không thể hủy quyền của người khác.");
         }
 
-        if (p.isActive()) {
-            throw badRequest("Quyền đã được duyệt, không thể hủy.");
-        }
-
+        // Cho phép hủy cả quyền đã được duyệt (active=true) và yêu cầu đang pending (active=false)
+        // Xóa permission để giáo viên có thể đăng ký lại sau nếu muốn
         permRepo.deleteById(permissionId);
     }
 

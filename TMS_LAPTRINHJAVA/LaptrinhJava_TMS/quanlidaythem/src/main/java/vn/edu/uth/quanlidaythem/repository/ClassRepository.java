@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import vn.edu.uth.quanlidaythem.model.ClassEntity;
 
@@ -36,6 +38,11 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
      * Tìm tất cả lớp theo trạng thái (có phân trang)
      */
     Page<ClassEntity> findByStatus(String status, Pageable pageable);
+    
+    /**
+     * Tìm tất cả lớp theo trạng thái (không phân trang)
+     */
+    List<ClassEntity> findByStatus(String status);
     
     /**
      * Tìm tất cả lớp theo loại (có phân trang)
@@ -85,8 +92,16 @@ public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
     //List<ClassEntity> findClassesWithoutSchedule();
     
     /**
-     * Đếm số lớp của 1 giáo viên
+     * Đếm số lớp của 1 giáo viên (theo teacher_id trong bảng classes)
+     * Có thể sử dụng với User.id nếu teacher_id trỏ đến users.id
      */
-    //@Query("SELECT COUNT(c) FROM ClassEntity c WHERE c.teacher.id = :teacherId")
-    //long countByTeacherId(@Param("teacherId") Long teacherId);
+    @Query("SELECT COUNT(c) FROM ClassEntity c WHERE c.teacher.id = :teacherId")
+    long countByTeacherId(@Param("teacherId") Long teacherId);
+    
+    /**
+     * Đếm số lớp theo teacher_id trực tiếp (native query)
+     * Dùng khi teacher_id có thể trỏ đến users.id
+     */
+    @Query(value = "SELECT COUNT(*) FROM classes WHERE teacher_id = :teacherId", nativeQuery = true)
+    long countByTeacherIdNative(@Param("teacherId") Long teacherId);
 }

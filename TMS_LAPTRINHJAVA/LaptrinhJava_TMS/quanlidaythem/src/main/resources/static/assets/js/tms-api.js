@@ -348,6 +348,49 @@ window.TMS_API = window.TMS_API || {
                 body: JSON.stringify({ reason })
             });
             return handleResponse(res);
+        },
+
+        revoke: async (id) => {
+            const res = await fetch(`/api/admin/teachers/${id}/revoke`, {
+                method: "POST",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        }
+    },
+
+    // ---- Students ----
+    Students: {
+        getAvailableClasses: async () => {
+            const res = await fetch(`/api/student/classes/available`, {
+                method: "GET",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        },
+
+        getMyClasses: async () => {
+            const res = await fetch(`/api/student/classes/my`, {
+                method: "GET",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        },
+
+        registerClass: async (classId) => {
+            const res = await fetch(`/api/student/classes/${classId}/register`, {
+                method: "POST",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        },
+
+        unregisterClass: async (classId) => {
+            const res = await fetch(`/api/student/classes/${classId}/register`, {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
         }
     },
 

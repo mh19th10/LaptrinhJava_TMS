@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import vn.edu.uth.quanlidaythem.domain.ClassScheduleSlot;
 import vn.edu.uth.quanlidaythem.domain.Subject;
+import vn.edu.uth.quanlidaythem.domain.TeacherRegistration;
 import vn.edu.uth.quanlidaythem.domain.TeachingClass;
 import vn.edu.uth.quanlidaythem.dto.Request.AddScheduleSlotRequest;
 import vn.edu.uth.quanlidaythem.dto.Request.CreateClassRequest;
@@ -70,13 +71,28 @@ public class AdminTeachingController {
         return scheduleService.byClass(id);
     }
 
+    // ===================== ĐĂNG KÝ CHỜ DUYỆT =====================
+    @GetMapping("/registrations/pending")
+    public ResponseEntity<List<TeacherRegistration>> listPendingRegistrations() {
+        return ResponseEntity.ok(approvalService.listPendingCustomRegistrations());
+    }
  
     @PostMapping("/registrations/{id}/approve")
     public ResponseEntity<Void> approve(
             @PathVariable Long id,
-            @RequestHeader("X-Admin-Id") Long adminId
+            @RequestHeader("X-Admin-Id") Long adminId,
+            @RequestBody(required = false) Map<String, Object> body
     ) {
-        approvalService.approveClassRegistration(adminId, id);
+        // Nếu có body với className, subjectId, capacity -> custom registration (tạo lớp mới)
+        if (body != null && (body.containsKey("className") || body.containsKey("subjectId"))) {
+            String className = body.containsKey("className") ? (String) body.get("className") : null;
+            Long subjectId = body.containsKey("subjectId") ? ((Number) body.get("subjectId")).longValue() : null;
+            Integer capacity = body.containsKey("capacity") ? ((Number) body.get("capacity")).intValue() : null;
+            approvalService.approveCustomRegistration(adminId, id, className, subjectId, capacity);
+        } else {
+            // Đăng ký vào lớp có sẵn
+            approvalService.approveClassRegistration(adminId, id);
+        }
         return ResponseEntity.ok().build();
     }
 

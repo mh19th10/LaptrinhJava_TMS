@@ -7,6 +7,7 @@ import java.util.List;
 public class TeacherAdminView {
     public Long id;
     public String name;
+    public String fullName;      // << thêm để tương thích với frontend
     public String email;
     public String phone;
     public LocalDate dob;
@@ -19,6 +20,7 @@ public class TeacherAdminView {
     public boolean active;
     public String status;        // PENDING/APPROVED/REJECTED
     public String rejectReason;  // << thêm
+    public Integer classCount;   // << thêm số lớp của giáo viên
 
     public List<SubjectPermissionView> subjects;
 

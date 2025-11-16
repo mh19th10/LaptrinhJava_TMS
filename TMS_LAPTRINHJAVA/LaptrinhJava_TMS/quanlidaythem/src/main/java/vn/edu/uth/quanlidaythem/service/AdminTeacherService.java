@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import vn.edu.uth.quanlidaythem.domain.TeacherSubjectPermission;
 import vn.edu.uth.quanlidaythem.domain.User;
 import vn.edu.uth.quanlidaythem.dto.Response.TeacherAdminView;
+import vn.edu.uth.quanlidaythem.repository.ClassRepository;
 import vn.edu.uth.quanlidaythem.repository.TeacherSubjectPermissionRepository;
 import vn.edu.uth.quanlidaythem.repository.UserRepository;
 
@@ -21,10 +22,12 @@ public class AdminTeacherService {
 
     private final UserRepository userRepo;
     private final TeacherSubjectPermissionRepository permRepo;
+    private final ClassRepository classRepo;
 
-    public AdminTeacherService(UserRepository userRepo, TeacherSubjectPermissionRepository permRepo) {
+    public AdminTeacherService(UserRepository userRepo, TeacherSubjectPermissionRepository permRepo, ClassRepository classRepo) {
         this.userRepo = userRepo;
         this.permRepo = permRepo;
+        this.classRepo = classRepo;
     }
 
     private static String safe(String s) { return s == null ? "" : s; }
@@ -33,6 +36,7 @@ public class AdminTeacherService {
         TeacherAdminView v = new TeacherAdminView();
         v.id          = u.getId();
         v.name        = u.getFullName();
+        v.fullName    = u.getFullName();  // << thêm để tương thích với frontend
         v.email       = u.getEmail();
         v.phone       = u.getPhone();
         v.dob         = null;      // nếu User chưa có các field này thì để null
@@ -41,24 +45,46 @@ public class AdminTeacherService {
         v.address     = null;
         v.bio         = null;
         v.mainSubject = u.getMainSubject();
+        
+        // Đếm số lớp của giáo viên
+        // Thử dùng native query trước (teacher_id có thể trỏ đến users.id)
+        // Nếu không được, thử dùng JPA query (teacher_id trỏ đến teachers.id)
+        try {
+            v.classCount = (int) classRepo.countByTeacherIdNative(u.getId());
+        } catch (Exception e) {
+            try {
+                // Thử dùng JPA query nếu native query không khớp
+                v.classCount = (int) classRepo.countByTeacherId(u.getId());
+            } catch (Exception e2) {
+                // Nếu cả hai đều không khớp, đặt về 0
+                v.classCount = 0;
+            }
+        }
 
         // Tính trạng thái tổng
-        boolean hasApproved = perms.stream().anyMatch(TeacherSubjectPermission::isActive);
-        boolean hasRejected = perms.stream().anyMatch(p -> !p.isActive()
-                && p.getNote() != null && !p.getNote().isBlank());
+        // Ưu tiên: PENDING > REJECTED > APPROVED
+        // Nếu có bất kỳ permission nào đang chờ duyệt -> PENDING
         boolean hasPending  = perms.stream().anyMatch(p -> !p.isActive()
                 && (p.getNote() == null || p.getNote().isBlank()));
+        boolean hasRejected = perms.stream().anyMatch(p -> !p.isActive()
+                && p.getNote() != null && !p.getNote().isBlank());
+        boolean hasApproved = perms.stream().anyMatch(TeacherSubjectPermission::isActive);
 
-        if (hasApproved) {
-            v.status = "APPROVED";
-        } else if (hasRejected) {
-            v.status = "REJECTED";
-        } else if (hasPending) {
+        if (hasPending) {
+            // Nếu có permission đang chờ duyệt -> PENDING (ưu tiên cao nhất)
             v.status = "PENDING";
+        } else if (hasRejected && !hasApproved) {
+            // Nếu chỉ có rejected và không có approved -> REJECTED
+            v.status = "REJECTED";
+        } else if (hasApproved) {
+            // Nếu có approved (và không có pending) -> APPROVED
+            v.status = "APPROVED";
         } else {
+            // Trường hợp khác (không có pending, rejected, approved) -> PENDING
+            // Lưu ý: Trường hợp này không nên xảy ra vì đã filter ra giáo viên không có permission
             v.status = "PENDING";
         }
-        v.active = hasApproved;
+        v.active = hasApproved && !hasPending; // Chỉ active khi có approved và không có pending
 
         // Lý do từ chối (nếu có)
         v.rejectReason = perms.stream()
@@ -104,6 +130,11 @@ public class AdminTeacherService {
             if (!isTeacher) continue;
 
             var perms = permRepo.findByTeacher_Id(u.getId());
+            
+            // Chỉ hiển thị giáo viên có ít nhất 1 permission (đã đăng ký môn)
+            // Nếu chưa đăng ký môn nào, bỏ qua (không hiển thị trong danh sách)
+            if (perms.isEmpty()) continue;
+            
             var view  = mapToView(u, perms);
 
             if (!s.isEmpty() && !s.equals(view.status)) continue;
@@ -139,9 +170,28 @@ public class AdminTeacherService {
     public TeacherAdminView approve(Long teacherId) {
         User u = userRepo.findById(teacherId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
-        permRepo.updateActiveByTeacherId(teacherId, true);
-        // (nếu muốn) clear note từng bản ghi:
-        // permRepo.findByTeacherId(teacherId).forEach(p -> { p.setNote(null); permRepo.save(p); });
+        
+        // Chỉ duyệt các permission đang pending (active=false, note=null hoặc blank)
+        // Không ảnh hưởng đến các permission đã được duyệt trước đó
+        List<TeacherSubjectPermission> perms = permRepo.findByTeacher_Id(teacherId);
+        boolean hasAnyPending = false;
+        for (TeacherSubjectPermission p : perms) {
+            // Chỉ duyệt permission đang pending (chưa được duyệt và chưa bị từ chối)
+            if (!p.isActive() && (p.getNote() == null || p.getNote().isBlank())) {
+                // Chỉ duyệt permission đang pending
+                p.setActive(true);
+                p.setNote(null);
+                permRepo.save(p);
+                hasAnyPending = true;
+            }
+        }
+        
+        // Nếu không có permission nào đang pending, throw exception
+        if (!hasAnyPending) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Giáo viên này không có yêu cầu nào đang chờ duyệt. Tất cả các môn đã được duyệt hoặc từ chối.");
+        }
+        
         return mapToView(u, permRepo.findByTeacher_Id(teacherId));
     }
 
@@ -154,21 +204,47 @@ public class AdminTeacherService {
 
         List<TeacherSubjectPermission> list = permRepo.findByTeacher_Id(teacherId);
 
+        // Chỉ từ chối các permission đang pending (active=false, note=null hoặc blank)
+        // Không ảnh hưởng đến các permission đã được duyệt trước đó
+        boolean hasAnyPending = false;
         for (TeacherSubjectPermission p : list) {
-            p.setActive(false);
-
-            if (p.getNote() == null || p.getNote().isBlank()) {
+            if (!p.isActive() && (p.getNote() == null || p.getNote().isBlank())) {
+                // Chỉ từ chối permission đang pending
+                p.setActive(false);
                 p.setNote((reason == null || reason.isBlank()) 
                     ? "Từ chối bởi admin" 
                     : reason);
+                permRepo.save(p);
+                hasAnyPending = true;
             }
-
-            permRepo.save(p);
         }
 
-        return mapToView(u, list);
+        // Nếu không có permission nào đang pending, throw exception
+        if (!hasAnyPending) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Giáo viên này không có yêu cầu nào đang chờ duyệt. Tất cả các môn đã được duyệt hoặc từ chối.");
+        }
+
+        return mapToView(u, permRepo.findByTeacher_Id(teacherId));
     }
 
+
+    // Reset tất cả permission của giáo viên về pending (chỉ dùng cho test/development)
+    @Transactional
+    public TeacherAdminView resetToPending(Long teacherId) {
+        User u = userRepo.findById(teacherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
+        
+        List<TeacherSubjectPermission> perms = permRepo.findByTeacher_Id(teacherId);
+        for (TeacherSubjectPermission p : perms) {
+            // Reset về pending: active=false, note=null
+            p.setActive(false);
+            p.setNote(null);
+            permRepo.save(p);
+        }
+        
+        return mapToView(u, permRepo.findByTeacher_Id(teacherId));
+    }
 
     @Transactional
     public TeacherAdminView suspend(Long teacherId, String reason) {
@@ -176,6 +252,35 @@ public class AdminTeacherService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
         // tắt toàn bộ (không buộc phải có note)
         permRepo.updateActiveByTeacherId(teacherId, false);
+        return mapToView(u, permRepo.findByTeacher_Id(teacherId));
+    }
+
+    // Hủy quyền đã được duyệt (chỉ hủy các permission active=true)
+    @Transactional
+    public TeacherAdminView revoke(Long teacherId) {
+        User u = userRepo.findById(teacherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy giáo viên: " + teacherId));
+        
+        List<TeacherSubjectPermission> perms = permRepo.findByTeacher_Id(teacherId);
+        boolean hasAnyApproved = false;
+        
+        // Chỉ hủy các permission đã được duyệt (active=true)
+        for (TeacherSubjectPermission p : perms) {
+            if (p.isActive()) {
+                // Hủy quyền: set active=false, xóa note (để có thể đăng ký lại sau)
+                p.setActive(false);
+                p.setNote(null);
+                permRepo.save(p);
+                hasAnyApproved = true;
+            }
+        }
+        
+        // Nếu không có permission nào đã được duyệt, throw exception
+        if (!hasAnyApproved) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                "Giáo viên này không có quyền nào đã được duyệt để hủy.");
+        }
+        
         return mapToView(u, permRepo.findByTeacher_Id(teacherId));
     }
 }

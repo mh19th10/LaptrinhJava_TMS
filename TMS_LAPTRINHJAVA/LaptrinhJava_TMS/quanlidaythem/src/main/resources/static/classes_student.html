@@ -38,60 +38,187 @@
       </div>
 
       <div class="card">
-        <table class="table">
-          <thead>
-            <tr><th>Tên lớp</th><th>Giáo viên</th><th>Lịch học</th><th>Học phí</th><th></th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Toán nâng cao 9</td><td>Nguyễn Thị A</td><td>Thứ 3 - 19h00</td><td>800.000 VNĐ</td><td><button class="btn">Đăng ký</button></td></tr>
-            <tr><td>Văn luyện thi</td><td>Trần Văn B</td><td>Thứ 5 - 18h00</td><td>750.000 VNĐ</td><td><button class="btn ghost">Chi tiết</button></td></tr>
-          </tbody>
-        </table>
+        <div style="margin-bottom: 20px;">
+          <button class="btn" onclick="switchTab('available')" id="tabAvailable">Lớp có thể đăng ký</button>
+          <button class="btn ghost" onclick="switchTab('my')" id="tabMy">Lớp của tôi</button>
+        </div>
+        
+        <div id="availableClassesTab">
+          <table class="table">
+            <thead>
+              <tr><th>Tên lớp</th><th>Môn học</th><th>Giáo viên</th><th>Số học sinh</th><th>Loại</th><th></th></tr>
+            </thead>
+            <tbody id="availableClassesBody">
+              <tr><td colspan="6" style="text-align:center;">Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="myClassesTab" style="display:none;">
+          <table class="table">
+            <thead>
+              <tr><th>Tên lớp</th><th>Môn học</th><th>Giáo viên</th><th>Số học sinh</th><th>Loại</th><th></th></tr>
+            </thead>
+            <tbody id="myClassesBody">
+              <tr><td colspan="6" style="text-align:center;">Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </main>
   </div>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-      const token = localStorage.getItem('authToken');   // FIXED
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-      const role = (currentUser.role || "").toUpperCase();
+  document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireLoginOrRedirect()) return;
+      if (!requireRoleOrRedirect("STUDENT")) return;
+      RBAC.applyRoleBasedUI();
 
-      if (!token) { alert('Bạn cần đăng nhập để truy cập trang này!'); location.href = 'login.html'; return; }
-
-      if (role !== 'STUDENT') {
-          location.href = (role === 'TEACHER') ? 'dashboard_teacher.html' : 'login.html';
-          return;
+      // Load thông tin học sinh
+      try {
+          const res = await fetch('/api/student/info', {
+              headers: getAuthHeaders()
+          });
+          if (res.ok) {
+              const info = await res.json();
+              const nameEl = document.getElementById('studentName');
+              if (nameEl) nameEl.textContent = '– Chào, ' + (info.fullName || 'Học sinh');
+          }
+      } catch (err) {
+          console.error('Load info error:', err);
       }
 
-      fetch('/api/student/info', {
-          headers: { 'Authorization': 'Bearer ' + token }
-      })
-      .then(res => {
-          if (res.status === 401) throw new Error('UNAUTH');
-          if (res.status === 403) throw new Error('FORBIDDEN');
-          if (!res.ok) throw new Error();
-          return res.json();
-      })
-      .then(data => {
-          const nameEl = document.getElementById('studentName');
-          if (nameEl) nameEl.textContent = '– Chào, ' + (data.fullName || 'Học sinh');
-      })
-      .catch(err => {
-          localStorage.clear();
-          location.href = 'login.html';
-      });
+      // Load danh sách lớp
+      await loadAvailableClasses();
+      await loadMyClasses();
 
       const logoutBtn = document.getElementById('logoutBtn');
       if (logoutBtn) {
           logoutBtn.addEventListener('click', e => {
               e.preventDefault();
-              localStorage.clear();
-              location.href = 'login.html';
+              logout();
           });
       }
   });
+
+  function switchTab(tab) {
+      const availableTab = document.getElementById('tabAvailable');
+      const myTab = document.getElementById('tabMy');
+      const availableDiv = document.getElementById('availableClassesTab');
+      const myDiv = document.getElementById('myClassesTab');
+
+      if (tab === 'available') {
+          availableTab.classList.remove('ghost');
+          availableTab.classList.add('btn');
+          myTab.classList.remove('btn');
+          myTab.classList.add('ghost');
+          availableDiv.style.display = 'block';
+          myDiv.style.display = 'none';
+      } else {
+          availableTab.classList.remove('btn');
+          availableTab.classList.add('ghost');
+          myTab.classList.remove('ghost');
+          myTab.classList.add('btn');
+          availableDiv.style.display = 'none';
+          myDiv.style.display = 'block';
+      }
+  }
+
+  function subjectLabel(key) {
+      const map = {
+          'math': 'Toán học',
+          'physics': 'Vật lý',
+          'chemistry': 'Hóa học',
+          'english': 'Tiếng Anh',
+          'biology': 'Sinh học',
+          'literature': 'Ngữ văn',
+          'history': 'Lịch sử',
+          'geography': 'Địa lý'
+      };
+      if (!key) return '';
+      return map[key] || key;
+  }
+
+  async function loadAvailableClasses() {
+      const tbody = document.getElementById('availableClassesBody');
+      try {
+          const classes = await TMS_API.Students.getAvailableClasses();
+          if (classes.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Không có lớp nào</td></tr>';
+              return;
+          }
+          tbody.innerHTML = classes.map(c => {
+              return `
+              <tr>
+                  <td>${c.className || '-'}</td>
+                  <td>${subjectLabel(c.subject) || '-'}</td>
+                  <td>${c.teacherName || '-'}</td>
+                  <td>${c.studentCount || 0}</td>
+                  <td>${c.type === 'in-school' ? 'Trong trường' : 'Ngoài trường'}</td>
+                  <td>
+                      <button class="btn" onclick="registerClass(${c.id})">Đăng ký</button>
+                  </td>
+              </tr>
+          `;
+          }).join('');
+      } catch (err) {
+          console.error('Load available classes error:', err);
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">Lỗi tải dữ liệu</td></tr>';
+      }
+  }
+
+  async function loadMyClasses() {
+      const tbody = document.getElementById('myClassesBody');
+      try {
+          const classes = await TMS_API.Students.getMyClasses();
+          if (classes.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Bạn chưa đăng ký lớp nào</td></tr>';
+              return;
+          }
+          tbody.innerHTML = classes.map(c => `
+              <tr>
+                  <td>${c.className || '-'}</td>
+                  <td>${subjectLabel(c.subject) || '-'}</td>
+                  <td>${c.teacherName || '-'}</td>
+                  <td>${c.studentCount || 0}</td>
+                  <td>${c.type === 'in-school' ? 'Trong trường' : 'Ngoài trường'}</td>
+                  <td>
+                      <button class="btn btn-danger" onclick="unregisterClass(${c.id})">Hủy đăng ký</button>
+                  </td>
+              </tr>
+          `).join('');
+      } catch (err) {
+          console.error('Load my classes error:', err);
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:red;">Lỗi tải dữ liệu</td></tr>';
+      }
+  }
+
+  async function registerClass(classId) {
+      if (!confirm('Bạn có chắc muốn đăng ký lớp này?')) return;
+      try {
+          await TMS_API.Students.registerClass(classId);
+          alert('Đăng ký thành công!');
+          await loadAvailableClasses();
+          await loadMyClasses();
+      } catch (err) {
+          alert('Lỗi: ' + (err.message || 'Không thể đăng ký lớp'));
+      }
+  }
+
+  async function unregisterClass(classId) {
+      if (!confirm('Bạn có chắc muốn hủy đăng ký lớp này?')) return;
+      try {
+          await TMS_API.Students.unregisterClass(classId);
+          alert('Đã hủy đăng ký!');
+          await loadAvailableClasses();
+          await loadMyClasses();
+      } catch (err) {
+          alert('Lỗi: ' + (err.message || 'Không thể hủy đăng ký'));
+      }
+  }
   </script>
+  <script src="/assets/js/auth.js"></script>
+  <script src="/assets/js/rbac.js"></script>
   <script src="/assets/js/tms-api.js"></script>
 </body>
 </html>
