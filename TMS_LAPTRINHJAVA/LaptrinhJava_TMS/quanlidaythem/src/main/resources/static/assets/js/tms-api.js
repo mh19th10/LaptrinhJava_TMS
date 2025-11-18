@@ -384,6 +384,37 @@ window.TMS_API = window.TMS_API || {
             });
             return handleResponse(res);
         }
+    },
+
+    // ---- Payments ----
+    Payments: {
+        create: async (amount, feeId, studentName, notes) => {
+            const res = await fetch(`${API_BASE_URL}/payments/create`, {
+                method: "POST",
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    amount: amount,
+                    feeId: feeId,
+                    studentName: studentName,
+                    notes: notes
+                })
+            });
+            return handleResponse(res);
+        },
+        getStatus: async (transactionId) => {
+            const res = await fetch(`${API_BASE_URL}/payments/${transactionId}`, {
+                method: "GET",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        },
+        confirm: async (transactionId, status = "SUCCESS") => {
+            const res = await fetch(`${API_BASE_URL}/payments/${transactionId}/confirm?status=${status}`, {
+                method: "POST",
+                headers: getAuthHeaders()
+            });
+            return handleResponse(res);
+        }
     }
 
 };

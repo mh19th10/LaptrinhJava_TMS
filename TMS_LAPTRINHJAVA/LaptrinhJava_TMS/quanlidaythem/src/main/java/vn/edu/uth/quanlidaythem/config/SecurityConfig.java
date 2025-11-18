@@ -130,6 +130,8 @@ public class SecurityConfig {
                 // ---------- PUBLIC API ----------
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/sepay/webhook").permitAll() // SePay webhook không cần auth
+                .requestMatchers("/api/payments/callback").permitAll() // Payment gateway callback
 
                 // ---------- ROLE-BASED API ----------
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
