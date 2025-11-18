@@ -1,5 +1,6 @@
 // ==================== API CLIENT ====================
-const handleResponse = async (response) => {
+// Note: handleResponse is defined in tms-api.js, using that instead
+const handleAdminResponse = async (response) => {
     if (response.status === 401 || response.status === 403) {
         throw new Error("UNAUTH");
     }
@@ -30,7 +31,7 @@ const TMS_API = {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username, password })
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         logout: () => {
@@ -46,14 +47,14 @@ const TMS_API = {
             const response = await fetch(`${API_BASE_URL}/admin/stats/overview`, {
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         getRecentActivities: async (limit = 10) => {
             const response = await fetch(`${API_BASE_URL}/admin/stats/recent-activities?limit=${limit}`, {
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         }
     },
 
@@ -75,7 +76,7 @@ const TMS_API = {
             const response = await fetch(`${API_BASE_URL}/admin/classes/${id}`, {
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         create: async (data) => {
@@ -84,7 +85,7 @@ const TMS_API = {
                 headers: getAuthHeaders(),
                 body: JSON.stringify(data)
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         approve: async (id) => {
@@ -92,7 +93,7 @@ const TMS_API = {
                 method: "PUT",
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         reject: async (id, reason) => {
@@ -101,7 +102,7 @@ const TMS_API = {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ reason })
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         }
     },
 
@@ -111,7 +112,7 @@ const TMS_API = {
             const response = await fetch(`${API_BASE_URL}/admin/teachers?status=pending`, {
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         approve: async (id) => {
@@ -119,7 +120,7 @@ const TMS_API = {
                 method: "PUT",
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         },
 
         reject: async (id, reason) => {
@@ -128,7 +129,7 @@ const TMS_API = {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ reason })
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         }
     },
 
@@ -138,7 +139,7 @@ const TMS_API = {
             const response = await fetch(`${API_BASE_URL}/admin/fees`, {
                 headers: getAuthHeaders()
             });
-            return handleResponse(response);
+            return handleAdminResponse(response);
         }
     }
 };

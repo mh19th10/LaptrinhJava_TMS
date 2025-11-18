@@ -138,8 +138,14 @@ async function loadStats() {
     }
 }
 
+// ====================== PAGINATION STATE ======================
+let currentPage = 0;
+const pageSize = 10; // Số lớp mỗi trang
+let totalPages = 1;
+let totalElements = 0;
+
 // ====================== LOAD CLASSES ======================
-async function loadClasses() {
+async function loadClasses(page = 0) {
     const tbody = document.getElementById("classesTableBody");
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">Đang tải dữ liệu...</td></tr>`;
 
@@ -149,10 +155,20 @@ async function loadClasses() {
         const subject= document.getElementById("subjectFilter")?.value || "";
         const q      = document.getElementById("searchInput")?.value?.trim() || "";
 
+        // Nếu có pending registrations hoặc filter/search, cần load tất cả để merge và filter
+        const needsFullLoad = (status === "pending" || status === "") || subject || q;
+        
         const params = new URLSearchParams();
-        params.set("page", "0");
-        params.set("size", "999");
-        if (status) params.set("status", status);
+        if (needsFullLoad) {
+            // Load tất cả để có thể merge pending registrations và filter/search
+            params.set("page", "0");
+            params.set("size", "999");
+        } else {
+            // Chỉ load trang hiện tại khi không có filter/search
+            params.set("page", String(page));
+            params.set("size", String(pageSize));
+        }
+        if (status && status !== "") params.set("status", status);
         if (type) params.set("type", type);
 
         // Try both endpoints: /api/admin/classes and /api/admin/class-management
@@ -167,6 +183,25 @@ async function loadClasses() {
         
         const body = await res.json();
         let list = Array.isArray(body) ? body : (body?.content ?? []);
+        
+        // Cập nhật thông tin phân trang từ response (chỉ khi không cần full load)
+        if (!needsFullLoad) {
+            if (body?.totalPages !== undefined) {
+                totalPages = body.totalPages || 1;
+                totalElements = body.totalElements || 0;
+                currentPage = body.currentPage !== undefined ? body.currentPage : page;
+            } else if (body?.totalElements !== undefined) {
+                // Nếu response là Page object trực tiếp
+                totalPages = body.totalPages || 1;
+                totalElements = body.totalElements || 0;
+                currentPage = body.number !== undefined ? body.number : page;
+            } else {
+                // Fallback: tính toán từ list
+                totalElements = list.length;
+                totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+                currentPage = page;
+            }
+        }
         
         // Nếu status là "pending" hoặc không có status filter, cũng load pending registrations
         if (status === "pending" || status === "") {
@@ -191,12 +226,12 @@ async function loadClasses() {
                         const arr = Array.isArray(teachers) ? teachers : (teachers?.content || []);
                         arr.forEach(t => {
                             // TeacherRegistration có teacherId là user.id, không phải teacher.id
-                            // Nên cần map qua User entity, nhưng tạm thời dùng fullName nếu có
+                            // TeacherAdminView.id là user.id, nên cache đúng
                             if (t.id) {
-                                // Cache theo cả id và fullName
-                                teacherNamesCache[t.id] = t.fullName || "-";
+                                teacherNamesCache[t.id] = t.fullName || t.name || "-";
                             }
                         });
+                        console.log("✅ Loaded teachers cache:", teacherNamesCache);
                     }
                 } catch (err) {
                     console.error("Error loading subjects/teachers:", err);
@@ -207,25 +242,52 @@ async function loadClasses() {
                 });
                 if (regRes.ok) {
                     const registrations = await regRes.json();
+                    
+                    // Load thông tin giáo viên cho các registration nếu chưa có trong cache
+                    const teacherIds = [...new Set(registrations.map(r => r.teacherId).filter(Boolean))];
+                    const missingTeacherIds = teacherIds.filter(id => !teacherNamesCache[id]);
+                    
+                    if (missingTeacherIds.length > 0) {
+                        console.log("⚠️ Missing teacher names for IDs:", missingTeacherIds);
+                        // Load từng giáo viên còn thiếu
+                        await Promise.all(missingTeacherIds.map(async (teacherId) => {
+                            try {
+                                const teacherDetailRes = await fetch(`/api/admin/teachers/${teacherId}`, {
+                                    headers: getAuthHeadersLocal()
+                                });
+                                if (teacherDetailRes.ok) {
+                                    const teacher = await teacherDetailRes.json();
+                                    teacherNamesCache[teacherId] = teacher.fullName || teacher.name || "-";
+                                    console.log(`✅ Loaded teacher ${teacherId}: ${teacherNamesCache[teacherId]}`);
+                                }
+                            } catch (err) {
+                                console.error(`Error loading teacher ${teacherId}:`, err);
+                            }
+                        }));
+                    }
+                    
                     // Convert registrations to class-like objects
-                    const regList = registrations.map(reg => ({
-                        id: "reg_" + reg.id, // Prefix để phân biệt với class id
-                        registrationId: reg.id,
-                        className: reg.className || "-",
-                        subject: reg.subjectId ? (subjectNamesCache[reg.subjectId] || reg.subjectId) : "-",
-                        subjectId: reg.subjectId,
-                        type: reg.mode || "out-school",
-                        capacity: reg.capacity || 30,
-                        status: "pending",
-                        isRegistration: true, // Flag để biết đây là registration
-                        teacherId: reg.teacherId,
-                        teacher: reg.teacherId ? { fullName: teacherNamesCache[reg.teacherId] || `Giáo viên #${reg.teacherId}` } : null,
-                        location: reg.location || "-",
-                        schedule: reg.schedule || "-",
-                        requestNote: reg.requestNote || "-",
-                        studentCount: 0,
-                        schedules: []
-                    }));
+                    const regList = registrations.map(reg => {
+                        const teacherName = reg.teacherId ? (teacherNamesCache[reg.teacherId] || `Giáo viên #${reg.teacherId}`) : "Chưa phân công";
+                        return {
+                            id: "reg_" + reg.id, // Prefix để phân biệt với class id
+                            registrationId: reg.id,
+                            className: reg.className || "-",
+                            subject: reg.subjectId ? (subjectNamesCache[reg.subjectId] || reg.subjectId) : "-",
+                            subjectId: reg.subjectId,
+                            type: reg.mode || "out-school",
+                            capacity: reg.capacity || 30,
+                            status: "pending",
+                            isRegistration: true, // Flag để biết đây là registration
+                            teacherId: reg.teacherId,
+                            teacher: reg.teacherId ? { fullName: teacherName } : null,
+                            location: reg.location || "-",
+                            schedule: reg.schedule || "-",
+                            requestNote: reg.requestNote || "-",
+                            studentCount: 0,
+                            schedules: []
+                        };
+                    });
                     list = [...regList, ...list]; // Thêm registrations vào đầu danh sách
                 }
             } catch (err) {
@@ -251,12 +313,29 @@ async function loadClasses() {
             });
         }
 
-        if (!list.length) {
+        // Nếu đã full load (có pending registrations hoặc filter/search), tính toán lại phân trang
+        if (needsFullLoad) {
+            totalElements = list.length;
+            totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+            
+            // Áp dụng phân trang cho list đã filter
+            const startIndex = page * pageSize;
+            const endIndex = startIndex + pageSize;
+            list = list.slice(startIndex, endIndex);
+            currentPage = page;
+        }
+        
+        const paginatedList = list;
+
+        // Cập nhật UI phân trang
+        updatePaginationUI();
+
+        if (!paginatedList.length) {
             tbody.innerHTML = `<tr><td colspan="8" style="text-align:center">Không có lớp học nào</td></tr>`;
             return;
         }
 
-        tbody.innerHTML = list.map(c => {
+        tbody.innerHTML = paginatedList.map(c => {
             const teacherName = c.teacher?.fullName || "Chưa phân công";
             const isReg = c.isRegistration || String(c.id).startsWith("reg_");
             const regId = isReg ? (c.registrationId || String(c.id).replace("reg_", "")) : null;
@@ -282,6 +361,7 @@ async function loadClasses() {
                                 : `<button class="btn btn-info" onclick="viewSchedule(${c.id})">Xem lịch</button>`
                             }
                             ${!isReg ? `<button class="btn btn-info" onclick="viewStudents(${c.id})">Xem học sinh (${c.studentCount ?? (c.students?.length ?? 0)})</button>` : ''}
+                            ${!isReg ? `<button class="btn btn-danger" onclick="deleteClass(${c.id}, '${escapeHtml(c.className || '')}')" style="margin-left: 5px;">Xóa</button>` : ''}
                         </div>
                     </td>
                 </tr>`;
@@ -294,7 +374,32 @@ async function loadClasses() {
 }
 
 function searchClasses() {
-    loadClasses();
+    currentPage = 0; // Reset về trang đầu khi tìm kiếm
+    loadClasses(0);
+}
+
+// ====================== PAGINATION FUNCTIONS ======================
+function changePage(delta) {
+    const newPage = currentPage + delta;
+    if (newPage >= 0 && newPage < totalPages) {
+        loadClasses(newPage);
+    }
+}
+
+function updatePaginationUI() {
+    const prevBtn = document.getElementById("prevPage");
+    const nextBtn = document.getElementById("nextPage");
+    const pageInfo = document.getElementById("pageInfo");
+    
+    if (prevBtn) {
+        prevBtn.disabled = currentPage === 0;
+    }
+    if (nextBtn) {
+        nextBtn.disabled = currentPage >= totalPages - 1;
+    }
+    if (pageInfo) {
+        pageInfo.textContent = `Trang ${currentPage + 1} / ${totalPages}`;
+    }
 }
 
 // ====================== APPROVE CLASS OPEN MODAL ======================
@@ -671,6 +776,48 @@ window.removeStudentFromClass = async function (classId, studentId) {
     } catch (err) {
         console.error("❌ removeStudentFromClass error:", err);
         alert("Lỗi xóa học sinh!");
+    }
+};
+
+// ====================== DELETE CLASS =====================
+window.deleteClass = async function (classId, className) {
+    const confirmMessage = `Bạn có chắc chắn muốn xóa lớp "${className}"?\n\nLưu ý: Hành động này không thể hoàn tác. Tất cả học sinh trong lớp sẽ bị xóa khỏi lớp.`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        // Try class-management endpoint first
+        let res = await fetch(`/api/admin/class-management/${classId}`, {
+            method: "DELETE",
+            headers: getAuthHeadersLocal()
+        });
+        
+        // If class-management endpoint fails, try classes endpoint
+        if (!res.ok) {
+            res = await fetch(`/api/admin/classes/${classId}`, {
+                method: "DELETE",
+                headers: getAuthHeadersLocal()
+            });
+        }
+        
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || "Không thể xóa lớp học");
+        }
+        
+        const result = await res.json();
+        
+        alert("Đã xóa lớp học thành công!");
+        
+        // Reload classes list and stats
+        await loadStats();
+        await loadClasses(currentPage);
+        
+    } catch (err) {
+        console.error("❌ deleteClass error:", err);
+        alert("Lỗi xóa lớp học: " + (err.message || "Không thể xóa lớp"));
     }
 };
 

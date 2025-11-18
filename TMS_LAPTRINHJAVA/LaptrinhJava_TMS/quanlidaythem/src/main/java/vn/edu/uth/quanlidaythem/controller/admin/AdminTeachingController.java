@@ -76,6 +76,11 @@ public class AdminTeachingController {
     public ResponseEntity<List<TeacherRegistration>> listPendingRegistrations() {
         return ResponseEntity.ok(approvalService.listPendingCustomRegistrations());
     }
+    
+    @GetMapping("/registrations/teacher/{teacherId}")
+    public ResponseEntity<List<TeacherRegistration>> getRegistrationsByTeacher(@PathVariable Long teacherId) {
+        return ResponseEntity.ok(approvalService.getRegistrationsByTeacher(teacherId));
+    }
  
     @PostMapping("/registrations/{id}/approve")
     public ResponseEntity<Void> approve(

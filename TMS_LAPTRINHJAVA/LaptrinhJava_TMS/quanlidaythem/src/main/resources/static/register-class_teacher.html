@@ -194,7 +194,7 @@
     ];
 
     // Map subject key -> subjectId (từ database)
-    const SUBJECT_KEY_TO_ID = {};
+    let SUBJECT_KEY_TO_ID = {};
 
     async function loadSubjects(){
       const sel = document.getElementById('selSubject');
@@ -267,7 +267,7 @@
                       (nameLower.includes('hóa học') && subj.key === 'chemistry') ||
                       (nameLower.includes('tiếng anh') && subj.key === 'english') ||
                       (nameLower.includes('sinh học') && subj.key === 'biology') ||
-                      (nameLower.includes('ngữ văn') && subj.key === 'literature') ||
+                      ((nameLower.includes('ngữ văn') || nameLower.includes('văn')) && subj.key === 'literature') ||
                       (nameLower.includes('lịch sử') && subj.key === 'history') ||
                       (nameLower.includes('địa lý') && subj.key === 'geography') ||
                       ((nameLower.includes('tin học') || nameLower.includes('tin')) && subj.key === 'information technology')) {
@@ -293,7 +293,8 @@
           }).join('');
         
         // Debug: log mapping để kiểm tra
-        console.log('Subject mapping:', SUBJECT_KEY_TO_ID);
+        console.log('📋 Subject mapping (key -> id):', SUBJECT_KEY_TO_ID);
+        console.log('📚 Danh sách môn học từ database:', arr.map(s => ({ id: s.id, code: s.code, name: s.name })));
       } catch (e) {
         console.error('Load subjects error:', e);
         // Fallback: vẫn hiển thị hardcoded list nếu API lỗi
@@ -372,7 +373,7 @@
             subjectId = Number(s.id);
             break;
           }
-          if (keyLower === 'literature' && (codeLower.includes('van') || nameLower.includes('ngữ văn'))) {
+          if (keyLower === 'literature' && (codeLower.includes('van') || nameLower.includes('ngữ văn') || nameLower.includes('văn'))) {
             subjectId = Number(s.id);
             break;
           }
@@ -391,7 +392,14 @@
         }
       }
       
-      console.log('Selected subject key:', subjectKey, '-> subjectId:', subjectId);
+      // Debug: log để kiểm tra
+      if (!subjectId && subjectKey) {
+        console.warn('⚠️ Không tìm thấy subjectId cho key:', subjectKey);
+        console.log('📚 Available subjects từ database:', SUBJECTS.map(s => ({ id: s.id, code: s.code, name: s.name })));
+        console.log('🗺️ SUBJECT_KEY_TO_ID mapping hiện tại:', SUBJECT_KEY_TO_ID);
+      }
+      
+      console.log('✅ Selected subject key:', subjectKey, '-> subjectId:', subjectId);
       
       return {
         classId:    null, // nếu muốn đăng ký vào lớp có sẵn, set số id ở đây
@@ -418,7 +426,12 @@
       if (!subjectKey) return alert('Vui lòng chọn Môn học');
       if (!payload.subjectId) {
         const selectedLabel = selSubject.options[selSubject.selectedIndex]?.text || subjectKey;
-        return alert(`Không tìm thấy môn học "${selectedLabel}" trong hệ thống. Vui lòng liên hệ admin để thêm môn học này.`);
+        const availableSubjects = SUBJECTS.map(s => `- ${s.name || s.code || s.id}`).join('\n');
+        const errorMsg = `Không tìm thấy môn học "${selectedLabel}" trong hệ thống.\n\n` +
+                        `Các môn học hiện có trong hệ thống:\n${availableSubjects || '(Chưa có môn học nào)'}\n\n` +
+                        `Vui lòng liên hệ admin để thêm môn học "${selectedLabel}" vào hệ thống.`;
+        console.error('Subject not found:', { subjectKey, selectedLabel, availableSubjects: SUBJECTS });
+        return alert(errorMsg);
       }
       if (!payload.schedule)  return alert('Vui lòng nhập Lịch học');
 
