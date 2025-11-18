@@ -49,6 +49,12 @@ public class AdminApprovalService {
         return regRepo.findByStatusAndTeachingClassIsNullOrderByIdDesc(Status.PENDING);
     }
     
+    /** Lấy danh sách đăng ký của một giáo viên */
+    @Transactional(readOnly = true)
+    public List<TeacherRegistration> getRegistrationsByTeacher(Long teacherId) {
+        return regRepo.findByTeacherIdOrderByIdDesc(teacherId);
+    }
+    
     @Transactional
     public void approveClassRegistration(Long adminId, Long regId) {
         TeacherRegistration reg = regRepo.findById(regId)
@@ -98,7 +104,7 @@ public class AdminApprovalService {
         regRepo.save(reg);
     }
 
-    /** Duyệt một đăng ký “custom” -> tạo lớp mới và gắn */
+    /** Duyệt một đăng ký "custom" -> tạo lớp mới và gắn, đồng thời tự động duyệt quyền giáo viên dạy môn đó */
     @Transactional
     public void approveCustomRegistration(Long adminId, Long regId, String className, Long subjectId, Integer capacity) {
         TeacherRegistration reg = regRepo.findById(regId)
@@ -108,20 +114,47 @@ public class AdminApprovalService {
         if (reg.getTeachingClass() != null)
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đăng ký này đã gắn lớp");
 
+        // Xác định subjectId cuối cùng
+        Long finalSubjectId = subjectId != null ? subjectId : reg.getSubjectId();
+        if (finalSubjectId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không có thông tin môn học");
+        }
+
+        // Tự động duyệt quyền giáo viên dạy môn này (nếu chưa được duyệt)
+        List<TeacherSubjectPermission> perms = permRepo.findByTeacher_Id(reg.getTeacherId());
+        TeacherSubjectPermission perm = perms.stream()
+                .filter(p -> p.getSubject().getId().equals(finalSubjectId))
+                .findFirst()
+                .orElse(null);
+        
+        if (perm != null && !perm.isActive()) {
+            // Nếu có permission nhưng chưa được duyệt, tự động duyệt
+            perm.setActive(true);
+            perm.setNote(null);
+            permRepo.save(perm);
+        } else if (perm == null) {
+            // Nếu chưa có permission, tạo mới và duyệt luôn
+            perm = new TeacherSubjectPermission();
+            var teacher = new vn.edu.uth.quanlidaythem.domain.User();
+            teacher.setId(reg.getTeacherId());
+            perm.setTeacher(teacher);
+            var subj = new vn.edu.uth.quanlidaythem.domain.Subject();
+            subj.setId(finalSubjectId);
+            perm.setSubject(subj);
+            perm.setActive(true);
+            perm.setNote(null);
+            permRepo.save(perm);
+        }
+
+        // Tạo lớp mới
         TeachingClass clazz = new TeachingClass();
         clazz.setName((className != null && !className.isBlank()) ? className : (reg.getClassName() != null ? reg.getClassName() : ("Lớp từ yêu cầu #" + reg.getId())));
         clazz.setCapacity(capacity != null ? capacity : (reg.getCapacity() != null ? reg.getCapacity() : 30));
         clazz.setTeacherId(reg.getTeacherId());
-
-        if (subjectId != null) {
-            var subj = new vn.edu.uth.quanlidaythem.domain.Subject();
-            subj.setId(subjectId);
-            clazz.setSubject(subj);
-        } else if (reg.getSubjectId() != null) {
-            var subj = new vn.edu.uth.quanlidaythem.domain.Subject();
-            subj.setId(reg.getSubjectId());
-            clazz.setSubject(subj);
-        }
+        
+        var subj = new vn.edu.uth.quanlidaythem.domain.Subject();
+        subj.setId(finalSubjectId);
+        clazz.setSubject(subj);
 
         classRepo.save(clazz);
 

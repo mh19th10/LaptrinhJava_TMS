@@ -200,6 +200,21 @@ public class AdminClassController {
     }
 
     /**
+     * Xóa lớp học
+     * DELETE /api/admin/class-management/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> delete(@PathVariable Long id) {
+        adminService.deleteClass(id);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "Xóa lớp học thành công");
+        
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Tìm kiếm lớp học (tạm thời dùng lại endpoint list với filter)
      * GET /api/admin/class-management/search?q=...
      */

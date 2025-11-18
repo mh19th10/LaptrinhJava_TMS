@@ -187,25 +187,6 @@ function logout() {
     window.location.href = "/login.html";
 }
 
-function wireLogout(btnId = "logoutBtn") {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    logout();
-  });
-}
-
-// ---- Logout binding ----
-function wireLogout(btnId = "logoutBtn") {
-  const btn = document.getElementById(btnId);
-  if (!btn) return;
-  btn.addEventListener("click", (evt) => {
-    evt.preventDefault();
-    logout();
-  });
-}
-
 function wireLogout(buttonId = "logoutBtn") {
   const btn = document.getElementById(buttonId);
   if (!btn) return;

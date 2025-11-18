@@ -115,8 +115,6 @@
 
   <!-- FIX: bỏ type="module", chuyển thành script thường -->
   <script>
-    const token = localStorage.getItem('jwtToken');
-
     document.addEventListener('DOMContentLoaded', () => {
       if (!requireLoginOrRedirect()) return;
       if (!requireRoleOrRedirect('TEACHER')) return;
@@ -148,8 +146,8 @@
 
     async function loadProfile() {
       try {
-        const res = await fetch('/api/teacher/profile', {
-          headers: { 'Authorization': 'Bearer ' + token }
+        const res = await fetch('/api/teachers/profile', {
+          headers: getAuthHeaders()
         });
         if (res.status === 401) throw new Error('UNAUTH');
         if (res.status === 403) throw new Error('FORBIDDEN');
@@ -191,9 +189,9 @@
         };
 
         try {
-          const res = await fetch('/api/teacher/profile', {
+          const res = await fetch('/api/teachers/profile', {
             method: 'PUT',
-            headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+            headers: getAuthHeaders(),
             body: JSON.stringify(body)
           });
           if (res.status === 401) throw new Error('UNAUTH');
@@ -237,7 +235,7 @@
         try {
           const res = await fetch('/api/account/change-password', {
             method: 'POST',
-            headers: { 'Content-Type':'application/json','Authorization':'Bearer '+token },
+            headers: getAuthHeaders(),
             body: JSON.stringify({ oldPassword, newPassword, confirmPassword })
           });
 

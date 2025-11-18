@@ -7,16 +7,22 @@ async function initTeacherDashboard() {
 
   // 1️⃣ Lấy thông tin giáo viên
   try {
-    const me = await fetchJSON('/api/teacher/info');
+    const me = await fetchJSON('/api/teachers/info');
+    console.log('Teacher info:', me);
     const nameEl = document.getElementById('teacherName');
-    if (nameEl) nameEl.textContent = `Chào, ${me.fullName || me.username || 'Giáo viên'} 👋`;
+    if (nameEl) {
+      const displayName = me.fullName || me.username || 'Giáo viên';
+      nameEl.textContent = `Xin chào, ${displayName} 👋`;
+      console.log('Updated teacher name to:', displayName);
+    }
   } catch (e) {
+    console.error('Error loading teacher info:', e);
     return handleAuthError(e);
   }
 
   // 2️⃣ Lấy danh sách lớp giảng dạy
   try {
-    const classes = await fetchJSON('/api/teacher/classes');
+    const classes = await fetchJSON('/api/teachers/classes');
     renderClassesTable(classes);
     setStatsFromClasses(classes);
   } catch (e) {

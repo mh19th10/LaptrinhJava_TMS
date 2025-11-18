@@ -2,6 +2,7 @@ package vn.edu.uth.quanlidaythem.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
@@ -135,28 +136,64 @@ public class StudentService {
 
     /**
      * Lấy hoặc tạo StudentEntity từ User
+     * Tìm kiếm theo cả email của user và username@tms.local để tránh tạo duplicate
      */
     private StudentEntity getOrCreateStudent(User user) {
-        // Tìm học sinh theo email
-        if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            return studentRepository.findByEmail(user.getEmail())
-                    .orElseGet(() -> {
-                        // Tạo mới nếu chưa có
-                        StudentEntity student = new StudentEntity();
-                        student.setFullName(user.getFullName());
-                        student.setEmail(user.getEmail());
-                        student.setPhone(user.getPhone());
-                        student.setStatus("active");
-                        return studentRepository.save(student);
-                    });
+        String usernameBasedEmail = user.getUsername() + "@tms.local";
+        String userEmail = (user.getEmail() != null && !user.getEmail().isBlank()) 
+            ? user.getEmail() 
+            : null;
+        
+        // Bước 1: Tìm theo email của user (nếu có)
+        if (userEmail != null) {
+            Optional<StudentEntity> found = studentRepository.findByEmail(userEmail);
+            if (found.isPresent()) {
+                return found.get();
+            }
         }
-        // Nếu không có email, tạo mới với username làm email tạm
+        
+        // Bước 2: Tìm theo username@tms.local (trường hợp student đã được tạo trước đó)
+        Optional<StudentEntity> found = studentRepository.findByEmail(usernameBasedEmail);
+        if (found.isPresent()) {
+            StudentEntity student = found.get();
+            // Nếu user có email và email này chưa được sử dụng bởi student khác, cập nhật
+            if (userEmail != null && !userEmail.equals(student.getEmail())) {
+                // Kiểm tra xem email của user có bị trùng với student khác không
+                Optional<StudentEntity> emailCheck = studentRepository.findByEmail(userEmail);
+                if (emailCheck.isEmpty()) {
+                    // Chỉ cập nhật email nếu không bị trùng
+                    student.setEmail(userEmail);
+                    return studentRepository.save(student);
+                }
+                // Nếu email đã tồn tại, giữ nguyên student hiện tại
+            }
+            return student;
+        }
+        
+        // Bước 3: Tạo mới student
         StudentEntity student = new StudentEntity();
         student.setFullName(user.getFullName());
-        student.setEmail(user.getUsername() + "@tms.local");
+        student.setEmail(userEmail != null ? userEmail : usernameBasedEmail);
         student.setPhone(user.getPhone());
         student.setStatus("active");
-        return studentRepository.save(student);
+        
+        try {
+            return studentRepository.save(student);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Nếu bị duplicate key (có thể do race condition), thử tìm lại
+            if (userEmail != null) {
+                found = studentRepository.findByEmail(userEmail);
+                if (found.isPresent()) {
+                    return found.get();
+                }
+            }
+            found = studentRepository.findByEmail(usernameBasedEmail);
+            if (found.isPresent()) {
+                return found.get();
+            }
+            // Nếu vẫn không tìm thấy, throw lại exception
+            throw e;
+        }
     }
 
     /**
